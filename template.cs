@@ -4,6 +4,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+
 // The template provides you with a window which displays a 'linear frame buffer', i.e.
 // a 1D array of pixels that represents the graphical contents of the window.
 
@@ -207,6 +208,8 @@ namespace Template
                     GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
                 }
             }
+
+            //app.vliegtuig.Render();
             // tell OpenTK we're done rendering
             SwapBuffers();
         }
