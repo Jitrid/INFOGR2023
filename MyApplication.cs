@@ -1,11 +1,6 @@
-using System.Numerics;
-using System.Runtime.CompilerServices;
 using INFOGR2023Template;
-//using OpenTK.Graphics.ES11;
-using OpenTK.Mathematics;
-//using Vector3 = System.Numerics.Vector3;
-using OpenTK.Graphics.ES30;
-using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Template
@@ -14,76 +9,91 @@ namespace Template
     {
         // member variables
         public Surface screen;
-        public Surface debug;
         public Camera camera;
-        public Primitive plane;
+        public Plane plane;
         public Intersection intersection;
         
         // constructor
         public MyApplication(Surface screen)
         {
             this.screen = screen;
-            this.debug = debug;
             this.camera = new Camera();
         }
         // initialize
         public void Init()
         {
-            camera.Position = new Vector3(1f, 0f, 1f);
-            camera.Direction = new Vector3(0f, 0f, 1f); // Pointing towards the positive Z-axis
+            camera.Position = new Vector3(0f, 1f, 0f);
+            camera.Direction = new Vector3(0f, -1f, 1f); // Pointing towards the positive Z-axis
             camera.Up = Vector3.UnitY;
-            camera.ScreenDistance = 100f; // Set a smaller screen distance
+            camera.ScreenDistance = 1f; // Set a smaller screen distance
             camera.ScreenWidth = screen.width; // Use the screen dimensions
             camera.ScreenHeight = screen.height;
 
+            // plane = Primitive.CreateCube(250f);
+            plane = Plane.CreatePlane(150f, 150f, 0, 0, 0);
+        } 
 
-            plane = Primitive.CreatePlane(28.25f, 27f);
-            
-
-        }
         // tick: renders one frame
         public void Tick()
         {
             screen.Clear(0);
 
-            for (int y = 0; y < screen.height; y++)
+            int count = 0;
+
+            // for (int y = 0; y < screen.height; y++)
+            // {
+            //     for (int x = screen.width / 2; x < screen.width; x++)
+            //     {
+
+            for (int n = 0; n < screen.pixels.Length; n++)
             {
-                for (int x = 0; x < screen.width; x++)
+                int y = n / screen.width;
+                int x = screen.width / 2 - (n - y * screen.width);
+
+                int x1 = x - screen.width / 2;
+
+                // Create a ray from the camera position through the current pixel
+                Ray ray = camera.GetRay(x1, y);
+
+                // Check if the ray intersects the plane
+                if (Plane.IntersectPlane(ray, plane, out float intersectionDistance, out Vector3 intersectionPoint))
                 {
-                    // Calculate the normalized device coordinates of the current pixel
-                    float screenX = (float)(2 * x + 1) / screen.width - 1;
-                    float screenY = 1 - (float)(2 * y) / screen.height;
+                    // Set the pixel color to the desired color
+                    int color = (int)intersectionDistance * 10000; // Blue color (adjust as needed)
 
-                    // Create a ray from the camera position through the current pixel
-                    Ray ray = camera.GetRay(screenX, screenY);
-
-                    // Check if the ray intersects the plane
-                    if (plane.IntersectPlane(ray, plane, out float intersectionDistance, out Vector3 intersectionPoint))
-                    {
-                      // Console.Write(intersectionDistance.ToString());
-                        // Set the pixel color to the desired color
-                        int color = (int)intersectionDistance*10; // Blue color (adjust as needed)
-                        
-                        screen.pixels[y * screen.width + x] = color;
-                    }
+                    screen.pixels[y * screen.width + x] = color;
                 }
+
+                if (count % 1280 == 0)
+                {
+                    screen.Line(320, 580, (int)TranslateX(intersectionPoint.X), (int)TranslateY(intersectionPoint.Z), 255);
+                }
+                count++;
             }
-
-            screen.Print("hello world", 2, 2, 0xffffff);
-            screen.Line(2, 20, 160, 20, 0xff0000);
-
-            
-
-
-            // Debug output
-            //Console.WriteLine("Ray direction: " + ray.Direction);
-            //    Console.WriteLine("Intersection distance: " + intersectionDistance);
-            //    Console.WriteLine("Intersection point: " + intersectionPoint);
+            //     }
+            // }
         }
 
+        public void AdjustCamera(KeyboardKeyEventArgs ea)
+        {
+            camera.Position = ea.Key switch
+            {
+                Keys.Space => (camera.Position.X, camera.Position.Y + 1, camera.Position.Z),
+                Keys.LeftShift => (camera.Position.X, camera.Position.Y - 1, camera.Position.Z),
+                Keys.W => (camera.Position.X, camera.Position.Y, camera.Position.Z + 1),
+                Keys.S => (camera.Position.X, camera.Position.Y, camera.Position.Z - 1),
+                Keys.D => (camera.Position.X + 1, camera.Position.Y, camera.Position.Z),
+                Keys.A => (camera.Position.X - 1, camera.Position.Y, camera.Position.Z),
+                _ => camera.Position
+            };
+        }
+
+        public int Steps = 8;
+        public float TranslateX(float x) => (x + 2) * screen.width / (Steps * 2);
+        public float TranslateY(float y) => -((y + 2) * screen.height / (Steps * 2));
 
 
-    private Vector3 CalculateColor(Vector3 intersectionPoint)
+        private Vector3 CalculateColor(Vector3 intersectionPoint)
         {
             // Determine the color based on the position of the intersection point
             if (intersectionPoint.X < 0 && intersectionPoint.Z < 0)
@@ -107,16 +117,5 @@ namespace Template
 
             return (r << 16) | (g << 8) | b;
         }
-
-
-
-
-
-
-
-
-
-
-
     }
 }

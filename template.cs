@@ -63,7 +63,7 @@ namespace Template
         public OpenTKApp()
             : base(GameWindowSettings.Default, new NativeWindowSettings()
             {
-                Size = new Vector2i(640, 400),
+                Size = new Vector2i(1280, 600),
                 Profile = allowPrehistoricOpenGL ? ContextProfile.Compatability : ContextProfile.Core,
                 Flags = allowPrehistoricOpenGL ? ContextFlags.Default : ContextFlags.ForwardCompatible,
             })
@@ -76,9 +76,11 @@ namespace Template
             // called during application initialization
             GL.ClearColor(0, 0, 0, 0);
             GL.Disable(EnableCap.DepthTest);
+
             Surface screen = new(ClientSize.X, ClientSize.Y);
             app = new MyApplication(screen);
             screenID = app.screen.GenTexture();
+            
             if (allowPrehistoricOpenGL)
             {
                 GL.Enable(EnableCap.Texture2D);
@@ -145,6 +147,9 @@ namespace Template
                 GL.BindTexture(TextureTarget.Texture2D, screenID);
                 GL.Uniform1(GL.GetUniformLocation(programID, "pixels"), 0);
             }
+            // Register events to adjust the camera based on mouse and keyboard input.
+            this.KeyDown += app.AdjustCamera;
+
             app.Init();
         }
         protected override void OnUnload()

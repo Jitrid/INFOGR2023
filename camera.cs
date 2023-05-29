@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK.Mathematics;
-//using Vector3 = System.Numerics.Vector3;
+﻿using OpenTK.Mathematics;
 
 namespace INFOGR2023Template
 {
     internal class Camera
     {
         public Vector3 Position { get; set; }
-        public Vector3 Direction { get; set; }
+        public Vector3 Direction { get; set; } // look-at direction
 
         public Vector3 Up { get; set; }
 
@@ -22,8 +16,7 @@ namespace INFOGR2023Template
         public int ScreenWidth { get; set; }
         public int ScreenHeight { get; set; }
 
-        
-
+        private const int Steps = 8;
 
         public Matrix4 Projection(float aspectRatio)
         {
@@ -33,14 +26,15 @@ namespace INFOGR2023Template
             float bottom = -ScreenHeight / 2;
             return Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, ScreenDistance, 1000f);
         }
+
         public Ray GetRay(float screenX, float screenY)
         {
             // Convert screen space coordinates to normalized device coordinates (NDC)
-            float ndcX = (2 * screenX / ScreenWidth) - 1;
-            float ndcY = 1 - (2 * screenY / ScreenHeight);
+            float ndcX = TransformX(screenX);
+            float ndcY = TransformY(screenY);
 
             // Create a ray direction in view space
-            Vector3 rayDirection = new Vector3(ndcX, ndcY, -1f);
+            Vector3 rayDirection = new(ndcX, ndcY, -1f);
 
             // Transform the ray direction from view space to world space
             Matrix4 invViewMatrix = Matrix4.LookAt(Position, Position + Direction, Up).Inverted();
@@ -53,5 +47,7 @@ namespace INFOGR2023Template
             return new Ray(Position, rayDirection);
         }
 
+        public float TransformX(float x) => x / (ScreenWidth / 2 / Steps) - Steps / 2;
+        public float TransformY(float y) => y / (ScreenHeight / Steps) - Steps / 2;
     }
 }
