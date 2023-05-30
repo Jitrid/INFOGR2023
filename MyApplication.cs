@@ -1,3 +1,4 @@
+using System.Numerics;
 using INFOGR2023Template;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -9,28 +10,30 @@ namespace Template
     {
         // member variables
         public Surface screen;
+        public Primitives Primitives;
         public Camera camera;
-        public Plane plane;
+        public Sphere sphere;
+        public Sphere sphere2;
+        public Light light;
         public Intersection intersection;
         
         // constructor
         public MyApplication(Surface screen)
         {
             this.screen = screen;
-            this.camera = new Camera();
         }
         // initialize
         public void Init()
         {
-            camera.Position = new Vector3(0f, 1f, 0f);
-            camera.Direction = new Vector3(0f, -1f, 1f); // Pointing towards the positive Z-axis
-            camera.Up = Vector3.UnitY;
-            camera.ScreenDistance = 1000f; // Set a smaller screen distance
-            camera.ScreenWidth = screen.width; // Use the screen dimensions
-            camera.ScreenHeight = screen.height;
+            // E  V  U  d  (R) | C = E + dV
+            camera = new Camera(screen.width, screen.height, new Vector3(0f, 0f, 0f), 
+                            new Vector3(0f, 0f, 1f), Vector3.UnitY, Vector3.UnitX, 1f);
 
-            // plane = Primitive.CreateCube(250f);
-            plane = Plane.CreatePlane(150f, 150f, 0, 0, 0);
+            Primitives = new Primitives();
+            sphere = new Sphere(new Vector3(0f, 1f, 3f), 5f);
+
+            Primitives.Add(sphere);
+
         } 
 
         // tick: renders one frame
@@ -45,34 +48,27 @@ namespace Template
                 int y = n / screen.width;
                 int x = (n - y * screen.width) / 2;
 
+                Vector3 Punty = camera.p0 + x * camera.u + y * camera.v;
+
                 // Create a ray from the camera position through the current pixel
-                Ray ray = camera.GetRay(x, y);
+                Ray viewRay = camera.GetRay(Punty);
+                int pixel = Color(viewRay, Primitives._primitives[0]);
 
-                Vector3 drawRay = camera.Position + 10 * ray.Direction;
-                float lineX = drawRay.X;
-                float lineY = 4f;
+                screen.pixels[y * screen.width + x] = pixel;
 
-                // Console.WriteLine(ray.Direction);
-
-                // Check if the ray intersects the plane
-                if (Plane.IntersectPlane(ray, plane, out float intersectionDistance, out Vector3 intersectionPoint))
-                {
-                    // Set the pixel color to the desired color
-                    int color = (int)intersectionDistance * 10000; // Blue color (adjust as needed)
-
-                    screen.pixels[y * screen.width + x] = color;
-                }
-
-                // if (count % (screen.pixels.Length / 100) == 0)
+                // Vector3 drawRay = camera.Position + 10 * viewRay.Direction;
+                // float lineX = drawRay.X;
+                // float lineY = 4f;
+                //
+                // if (count % 1000 == 0 & TranslateX(lineX) > screen.width / 2 & TranslateX(lineX) < screen.width)
                 // {
-                    screen.Line((int)TranslateX(0), (int)TranslateY(0), (int)TranslateX(lineX), (int)TranslateY(lineY), 255);
+                //     screen.Line((int)TranslateX(0), (int)TranslateY(0), (int)TranslateX(lineX), (int)TranslateY(lineY), 255);
                 // }
-                count++;
+                // count++;
+                // screen.Line(640 + (int)sphere.Center.X, (int)sphere.Center.Y, 640 + (int)sphere.Center.X + 100, (int)sphere.Center.Y + 100, 255 << 16);
             }
 
             screen.Line(800, 580 - 75, 1200, 580 - 75, 255 << 16);
-
-            Console.WriteLine($"X: {TranslateX(0)}, Y: {TranslateY(0)}");
         }
 
         public void AdjustCamera(KeyboardKeyEventArgs ea)
@@ -87,7 +83,24 @@ namespace Template
                 Keys.A => (camera.Position.X - 1, camera.Position.Y, camera.Position.Z),
                 _ => camera.Position
             };
+
+            Console.WriteLine(camera.Position);
         }
+
+        public int Color(Ray ray, Intersectable i)
+        {
+            Intersection intersection;
+            if (i.HitOrMiss(ray, 0, float.MaxValue, out intersection))
+                return (int)(0.5 * (GetColor(intersection.Normal.X, intersection.Normal.Y, intersection.Normal.Z)));
+
+            return 0;
+
+            // Vector3 Direction = Vector3.Normalize(ray.Direction);
+            // int t = (int)(0.5 * (Direction.Y + 1.0));
+            // return (int)((1.0 - t) * GetColor(1.0f, 1.0f, 1.0f) + t * GetColor(0.5f, 0.7f, 1.0f));
+        }
+        public int GetColor(float x, float y, float z) => (int)(255 * x + 255 * y + 255 * z);
+
 
         public int Steps = 8;
         public float TranslateX(float x) => screen.width / 2 + (x + Steps / 2) * (screen.width / (Steps * 2));

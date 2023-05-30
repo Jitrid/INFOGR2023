@@ -8,6 +8,7 @@ namespace INFOGR2023Template
         public Vector3 Direction { get; set; } // look-at direction
 
         public Vector3 Up { get; set; }
+        public Vector3 Right { get; set; }
 
         public float FOV { get; set; }
 
@@ -16,7 +17,37 @@ namespace INFOGR2023Template
         public int ScreenWidth { get; set; }
         public int ScreenHeight { get; set; }
 
-        private const int Steps = 8;
+        public float AspectRatio;
+
+        public Vector3 ImagePlaneCenter;
+        public Vector3 p0;
+        public Vector3 p1;
+        public Vector3 p2;
+
+        // screen plane orthonormal basis
+        public Vector3 u;
+        public Vector3 v;
+
+        public Camera(int width, int height, Vector3 pos, Vector3 dir, Vector3 up, Vector3 right, float screenDistance)
+        {
+            Position = pos;
+            Direction = dir;
+            Up = up;
+            Right = right;
+            ScreenDistance = screenDistance;
+            ScreenWidth = width;
+            ScreenHeight = height;
+
+            AspectRatio = ScreenWidth / ScreenHeight;
+
+            ImagePlaneCenter = Position + ScreenDistance * Direction;
+            p0 = ImagePlaneCenter + Up - AspectRatio * Right;
+            p1 = ImagePlaneCenter + Up + AspectRatio * Right;
+            p2 = ImagePlaneCenter - Up - AspectRatio * Right;
+            
+            u = p1 - p0;
+            v = p2 - p0;
+        }
 
         public Matrix4 Projection(float aspectRatio)
         {
@@ -27,27 +58,11 @@ namespace INFOGR2023Template
             return Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, ScreenDistance, 1000f);
         }
 
-        public Ray GetRay(float screenX, float screenY)
+        public Ray GetRay(Vector3 point)
         {
-            // Convert screen space coordinates to normalized device coordinates (NDC)
-            float ndcX = TransformX(screenX);
-            float ndcY = TransformY(screenY);
-
-            // Create a ray direction in view space
-            Vector3 rayDirection = new(ndcX, ndcY, -1f);
-
-            // Transform the ray direction from view space to world space
-            Matrix4 invViewMatrix = Matrix4.LookAt(Position, Position + Direction, Up).Inverted();
-            Vector3 worldSpaceDirection = Vector3.TransformNormal(rayDirection, invViewMatrix);
-
-            // Normalize the ray direction vector
-            rayDirection = Vector3.Normalize(worldSpaceDirection);
-
-            // Create and return the ray
+            Vector3 rayDirection = Vector3.Normalize(point - Position);
+            
             return new Ray(Position, rayDirection);
         }
-
-        public float TransformX(float x) => x / (ScreenWidth / 2 / Steps) - Steps / 2;
-        public float TransformY(float y) => y / (ScreenHeight / Steps) - Steps / 2;
     }
 }
