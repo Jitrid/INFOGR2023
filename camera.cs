@@ -30,6 +30,7 @@ namespace INFOGR2023Template
 
         public Camera(int width, int height, Vector3 pos, Vector3 dir, Vector3 up, Vector3 right, float screenDistance)
         {
+
             Position = pos;
             Direction = dir;
             Up = up;
@@ -47,6 +48,8 @@ namespace INFOGR2023Template
             
             u = p1 - p0;
             v = p2 - p0;
+
+            Console.WriteLine($"Camera: P0: {p0} P1: {p1} P2: {p2} AR: {AspectRatio} dir{Direction}");
         }
 
         public Matrix4 Projection(float aspectRatio)

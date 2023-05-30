@@ -1,8 +1,11 @@
-﻿using OpenTK.Mathematics;
+﻿using System.Numerics;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Platform.Windows;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
-public class Sphere : Intersectable
+public class Sphere
 {
     public Vector3 Center { get; }
     public float Radius { get; }
@@ -13,33 +16,28 @@ public class Sphere : Intersectable
         Radius = radius;
     }
 
-    public override bool HitOrMiss(Ray ray, float tmin, float tmax, out Intersection intersection)
+    public  bool HitRay (Ray ray, float tmin, float tmax, out Vector3 intersect)
     {
-        intersection = new Intersection();
-
+        //Console.WriteLine(ray.Direction);
         Vector3 distanceToCenter = ray.Origin - this.Center;
-        float a = (float)Math.Pow(ray.Direction.Length, 2);
-        float b = Vector3.Dot(distanceToCenter, ray.Direction);
-        float c = (float)Math.Pow(distanceToCenter.Length, 2) - this.Radius * this.Radius;
-        
-        float discriminant = (float)(Math.Pow(b, 2) - 4 * a * c);
-        float sqrtd = (float)Math.Sqrt(discriminant);
-        
-        if (discriminant < 0)
-            return false;
-        
-        float root = (-b - sqrtd) / a;
-        if (root < tmin || tmax < root)
+        Vector3 t = ray.Origin + (Vector3.Dot(distanceToCenter, ray.Direction) * ray.Direction);
+        float dcp = (t - Center).Length;
+        float d  = (float)((t - ray.Origin).Length - Math.Sqrt((Radius * Radius) - dcp * dcp));
+
+        Console.WriteLine($"t{t}. d:{d}");
+
+        if (d > Radius)
         {
-            root = (-b  + sqrtd) / a;
-            if (root < tmin || tmax < root)
-                return false;
+            intersect = Vector3.Zero;
+            return false;
+        }
+        else
+        {
+            intersect = t;
+            return true;
         }
         
-        intersection.T = root;
-        intersection.Position = ray.Parametric(intersection.T);
-        intersection.Normal = (intersection.Position - Center) / Radius;
-        
-        return true;
+
+    
     }
 }

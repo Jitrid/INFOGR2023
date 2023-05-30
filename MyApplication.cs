@@ -16,25 +16,26 @@ namespace Template
         public Sphere sphere2;
         public Light light;
         public Intersection intersection;
-        
+
         // constructor
         public MyApplication(Surface screen)
         {
             this.screen = screen;
         }
+
         // initialize
         public void Init()
         {
             // E  V  U  d  (R) | C = E + dV
-            camera = new Camera(screen.width, screen.height, new Vector3(0f, 0f, 0f), 
-                            new Vector3(0f, 0f, 1f), Vector3.UnitY, Vector3.UnitX, 1f);
+            camera = new Camera(screen.width, screen.height, new Vector3(0f, 0f, 0f),
+                new Vector3(0f, 0f, 1f), Vector3.UnitY, Vector3.UnitX, 1f);
 
             Primitives = new Primitives();
-            sphere = new Sphere(new Vector3(0f, 1f, 3f), 5f);
+            sphere = new Sphere(new Vector3(0f, 0f, 3f), 3f);
 
-            Primitives.Add(sphere);
+            // Primitives.Add(sphere);
 
-        } 
+        }
 
         // tick: renders one frame
         public void Tick()
@@ -43,18 +44,36 @@ namespace Template
 
             int count = 0;
 
-            for (int n = 0; n < screen.pixels.Length; n++)
+            //for (int n = 0; n < screen.pixels.Length; n++)
+            // {
+            //  int y = n / 640;
+            //    int x = (n - y * 640) / 2;
+            for (int i = 0; i < 600; i++)
             {
-                int y = n / screen.width;
-                int x = (n - y * screen.width) / 2;
+                for (int j = 0; j < 1280; j++)
+                {
 
-                Vector3 Punty = camera.p0 + x * camera.u + y * camera.v;
+                    double y = (i - 600f) / -600;
+                    double x = (j - 640f) / 320;
+
+                    //Console.WriteLine($"X:{x}Y:{y}");
+
+
+                    Vector3 Punty = camera.p0 + (float)x * camera.u + (float)y * camera.v;
 
                 // Create a ray from the camera position through the current pixel
                 Ray viewRay = camera.GetRay(Punty);
-                int pixel = Color(viewRay, Primitives._primitives[0]);
+                //int pixel = Color(viewRay, Primitives._primitives[0]);
 
-                screen.pixels[y * screen.width + x] = pixel;
+                if (sphere.HitRay(viewRay, 0, float.PositiveInfinity, out Vector3 intersection))
+                {
+                    screen.pixels[100] = 255;
+                    //Console.WriteLine($"x: {x} Y:{y}");
+                    screen.pixels[i * screen.width + j] = 255;
+                    screen.Line(800, 580 - 75, 1200, 580 - 75, 255 << 16);
+                    }
+
+
 
                 // Vector3 drawRay = camera.Position + 10 * viewRay.Direction;
                 // float lineX = drawRay.X;
@@ -67,11 +86,12 @@ namespace Template
                 // count++;
                 // screen.Line(640 + (int)sphere.Center.X, (int)sphere.Center.Y, 640 + (int)sphere.Center.X + 100, (int)sphere.Center.Y + 100, 255 << 16);
             }
-
-            screen.Line(800, 580 - 75, 1200, 580 - 75, 255 << 16);
+               
+        }
+           
         }
 
-        public void AdjustCamera(KeyboardKeyEventArgs ea)
+    public void AdjustCamera(KeyboardKeyEventArgs ea)
         {
             camera.Position = ea.Key switch
             {
