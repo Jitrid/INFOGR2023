@@ -1,4 +1,3 @@
-using System.Numerics;
 using INFOGR2023Template;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -28,7 +27,7 @@ namespace Template
         {
             // E  V  U  d  (R) | C = E + dV
             camera = new Camera(screen.width, screen.height, new Vector3(0f, 0f, 0f),
-                new Vector3(0f, 0f, 1f), Vector3.UnitY, Vector3.UnitX, 1f);
+                new Vector3(0f, 1f, 1f), Vector3.UnitY, Vector3.UnitX, 1f);
 
             Primitives = new Primitives();
             sphere = new Sphere(new Vector3(0f, 0f, 3f), 3f);
@@ -65,13 +64,13 @@ namespace Template
                 Ray viewRay = camera.GetRay(Punty);
                 //int pixel = Color(viewRay, Primitives._primitives[0]);
 
-                if (sphere.HitRay(viewRay, 0, float.PositiveInfinity, out Vector3 intersection))
+                if (sphere.HitRay(viewRay, camera, out Vector3 intersection))
                 {
                     screen.pixels[100] = 255;
                     //Console.WriteLine($"x: {x} Y:{y}");
                     screen.pixels[i * screen.width + j] = 255;
                     screen.Line(800, 580 - 75, 1200, 580 - 75, 255 << 16);
-                    }
+                }
 
 
 
@@ -85,9 +84,9 @@ namespace Template
                 // }
                 // count++;
                 // screen.Line(640 + (int)sphere.Center.X, (int)sphere.Center.Y, 640 + (int)sphere.Center.X + 100, (int)sphere.Center.Y + 100, 255 << 16);
-            }
+                }
                
-        }
+            }
            
         }
 
