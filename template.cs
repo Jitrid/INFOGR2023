@@ -155,7 +155,7 @@ namespace Template
             //     show_msg(sender2, e2, s);
             // };
 
-            this.KeyDown += ea => app.AdjustCamera(ea, deltaTime);
+            this.KeyDown += ea => app.CameraKeyboardInput(ea, deltaTime);
 
             app.Init();
         }

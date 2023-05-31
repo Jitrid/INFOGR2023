@@ -17,6 +17,9 @@ namespace Template
         public Light light;
         public Intersection intersection;
 
+        public bool FirstMove = true;
+        public Vector2 LastMousePosition;
+
         // constructor
         public MyApplication(Surface screen)
         {
@@ -101,7 +104,11 @@ namespace Template
 
         public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
         {
-            
+            if (FirstMove)
+            {
+                LastMousePosition = new Vector2(mea.X, mea.Y);
+                FirstMove = false;
+            }
         }
 
         public int ItTakesAllColoursToMakeARainbow(int lightColor, Vector3 lightDirection, Vector3 viewDirection,
