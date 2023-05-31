@@ -43,7 +43,7 @@ namespace Template
                 cameraDirection, cameraUp, cameraRight, 1f);
 
             light = new Light(new Vector3(-5f, 7f, -.5f), 255, 255, 255);
-            plane = new Plane(new Vector3(-1f, 0f, 0f), new Vector3(0,0,3));
+            plane = new Plane(new Vector3(0f, 1f, 0f), new Vector3(1,0,2));
             
             sphere = new Sphere(new Vector3(0f, 0f, 6f), 3f);
             // sphere2 = new Sphere(new Vector3(0f, 0f, 4f), 3f);
