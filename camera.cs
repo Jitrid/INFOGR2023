@@ -12,6 +12,7 @@ public class Camera
 
     public float fov { get; set; }
     public float Yaw { get; set; }
+    public float Pitch { get; set; }
     public float Sensitivity { get; set; }
 
     public float ScreenDistance { get; set; }
@@ -30,13 +31,14 @@ public class Camera
     public Vector3 u;
     public Vector3 v;
 
-    public Camera(int width, int height, Vector3 pos)
+    public Camera(float ratio, Vector3 pos)
     {
         Position = pos;
-        ScreenWidth = width;
-        ScreenHeight = height;
 
-        AspectRatio = (float)ScreenHeight/ScreenWidth;
+        AspectRatio = ratio;
+
+        Pitch = 0f;
+        Yaw = 0f;
         fov = 90f;
         Sensitivity = 0.1f;
 
@@ -61,9 +63,11 @@ public class Camera
                          (float)MathHelper.Tan(MathHelper.DegreesToRadians(0.5 * fov));
 
         ImagePlaneCenter = Position + ScreenDistance * Direction;
-        p0 = ImagePlaneCenter + Up - AspectRatio * Right;
-        p1 = ImagePlaneCenter + Up + AspectRatio * Right;
-        p2 = ImagePlaneCenter - Up - AspectRatio * Right;
+        p0 = ImagePlaneCenter + Up - ratio * Right;
+        p1 = ImagePlaneCenter + Up + ratio * Right;
+        p2 = ImagePlaneCenter - Up - ratio * Right;
+
+        Console.WriteLine($"P0: {p0}, P1: {p1}, P2: {p2}");
 
         u = p1 - p0;
         v = p2 - p0;

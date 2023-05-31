@@ -1,8 +1,9 @@
-using System.Numerics;
 using INFOGR2023Template;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Plane = INFOGR2023Template.Plane;
+using Vector2 = System.Numerics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Template
@@ -14,12 +15,13 @@ namespace Template
         public Camera Camera;
         public Plane plane;
         public Sphere sphere;
-        public Sphere sphere2;
         public Light light;
-        public Intersection intersection;
 
         public bool FirstMove = true;
         public Vector2 LastMousePosition;
+
+        private float _aspectRatio;
+        private int count = 0;
 
         // constructor
         public MyApplication(Surface screen)
@@ -30,8 +32,10 @@ namespace Template
         // initialize
         public void Init()
         {
+            _aspectRatio = screen.height / (screen.width / 2);
+
             Vector3 cameraPosition = new(0f, 0f, 0f);
-            Camera = new Camera(screen.width, screen.height, cameraPosition);
+            Camera = new Camera(_aspectRatio, cameraPosition);
 
             light = new Light(new Vector3(-5f, 7f, -.5f), 255, 255, 255);
             plane = new Plane(new Vector3(0f, 1f, 0f), new Vector3(1,0,2));
@@ -44,13 +48,15 @@ namespace Template
         {
             screen.Clear(0);
             
-            for (int i = 0; i < 600; i++)
+            for (int i = 0; i < screen.height; i++) // y
             {
-                for (int j = 0; j < 600; j++)
+                for (int j = 0; j < screen.width / 2; j++) // x
                 {
                     screen.pixels[i * screen.width + j] = 0x304080;
-                    double y = -1.0 + ((double)i / 299.0);
-                    double x = -1.0 + ((double)j / 299.0);
+                    // double y = -1.0 + i / 299.0;
+                    // double x = -1.0 + j / 299.0;
+                    double y = -1.0 + i / ((double)(screen.height / 2) - 1);
+                    double x = -1.0 + j / ((double)(screen.width / 4) - 1);
 
                     Vector3 Punty = Camera.p0 + (float)x * Camera.u + (float)y * Camera.v;
 
@@ -60,7 +66,7 @@ namespace Template
                     if (plane.HitRay(viewRay, out Vector3 intersectP))
                     {
                         Vector3 lightDirection = Vector3.Normalize(light.Location - intersectP);
-                        Ray lightRay = new Ray(intersectP, lightDirection);
+                        Ray lightRay = new(intersectP, lightDirection);
                         if (!sphere.HitRay(lightRay, out Vector3 lightIntersect))
                         {
                             int color = ItTakesAllColoursToMakeARainbow(0xFFFFFF, Vector3.Normalize(lightRay.Direction), viewRay.Direction,
@@ -76,35 +82,41 @@ namespace Template
                     Vector3 intersectionPoint;
                     if (sphere.HitRay(viewRay, out intersectionPoint))
                     {
+                        // if (count % 10 == 0)
+                        // {
+                        //     screen.Line(TranslateX(Camera.Position.X), TranslateZ(Camera.Position.Z), TranslateX(intersectionPoint.X), TranslateZ(intersectionPoint.Z), 255);
+                        // }
+
                         // hap slik weg ofzo idk anymore
-                        Vector3 Normal = sphere.GetNormal(intersectionPoint);
+                        Vector3 normal = sphere.GetNormal(intersectionPoint);
                         if (sphere.IntersectsWithLight(intersectionPoint, light.Location, out Vector3 lightDir))
                         {
-
                             // 1 roze teelbal, you are welcome
                             int color = ItTakesAllColoursToMakeARainbow(0xFF00FF, Vector3.Normalize(lightDir), viewRay.Direction,
-                                Normal, 0xFFFFFF, .001f, 10, 0.051f);
+                                normal, 0xFFFFFF, .001f, 10, 0.051f);
                             screen.pixels[i * screen.width + j] = color;
                         }
                     }
+                    // else
+                    // {
+                    //     if (count % 1000 == 0)
+                    //     {
+                    //         screen.Line(TranslateX(Camera.Position.X), TranslateZ(Camera.Position.Z), TranslateX(viewRay.Direction.X), 0, 255 << 16);
+                    //     }
+                    // }
+                    count++;
+
+                    screen.pixels[TranslateZ(Camera.Position.Z) * screen.width + TranslateX(Camera.Position.X)] = 255;
                 }
             }
+
+            screen.Line(TranslateX(sphere.Center.X) - 5, TranslateZ(sphere.Center.Z) - 5, TranslateX(sphere.Center.X) + 5, TranslateZ(sphere.Center.Z) + 5, 255 << 16);
         }
 
-    
-
-        public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
-        {
-            if (FirstMove)
-            {
-                LastMousePosition = new Vector2(mea.X, mea.Y);
-                FirstMove = false;
-            }
-        }
         public void CameraKeyboardInput(KeyboardKeyEventArgs kea, float time)
         {
             const float speed = 1.5f;
-            float ratio = screen.height / screen.width;
+            float ratio = screen.height / (screen.width / 2);
 
             switch (kea.Key)
             {
@@ -135,36 +147,44 @@ namespace Template
             }
         }
 
-        // public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
-        // {
-        //     Camera.Yaw += mea.DeltaX * Camera.Sensitivity;
-        //     Camera.Pitch -= mea.DeltaY * Camera.Sensitivity;
-        //
-        //     switch (Camera.Pitch)
-        //     {
-        //         case > 89.0f:
-        //             Camera.Pitch = 89.0f;
-        //             break;
-        //         case < -89.0f:
-        //             Camera.Pitch = -89.0f;
-        //             break;
-        //         default:
-        //             Camera.Pitch -= mea.DeltaX * Camera.Sensitivity;
-        //             break;
-        //     }
-        //     Camera.Direction = Vector3.Normalize(new Vector3(
-        //         (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Yaw)),
-        //         (float)Math.Sin(MathHelper.DegreesToRadians(Camera.Pitch)),
-        //         (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(Camera.Yaw)))
-        //     );
-        // }
+        public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
+        {
+            Camera.Yaw += mea.DeltaX * Camera.Sensitivity;
+            Camera.Pitch -= mea.DeltaY * Camera.Sensitivity;
+        
+            switch (Camera.Pitch)
+            {
+                case > 89.0f:
+                    Camera.Pitch = 89.0f;
+                    break;
+                case < -89.0f:
+                    Camera.Pitch = -89.0f;
+                    break;
+                default:
+                    Camera.Pitch -= mea.DeltaX * Camera.Sensitivity;
+                    break;
+            }
+            Camera.Direction = Vector3.Normalize(new Vector3(
+                (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Yaw)),
+                (float)Math.Sin(MathHelper.DegreesToRadians(Camera.Pitch)),
+                (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(Camera.Yaw)))
+            );
+
+            Camera.UpdateVectors(_aspectRatio);
+        }
 
         public void CameraZoom(MouseWheelEventArgs mea)
         {
             Camera.fov -= mea.OffsetY;
+
+            Camera.UpdateVectors(_aspectRatio);
         }
 
-        public void AdjustAspectRatio(float x, float y) => Camera.AspectRatio = y / x;
+        public void AdjustAspectRatio()
+        {
+            Camera.AspectRatio = _aspectRatio;
+            Camera.UpdateVectors(_aspectRatio);
+        }
 
         public int ItTakesAllColoursToMakeARainbow(int lightColor, Vector3 lightDirection, Vector3 viewDirection,
             Vector3 normal, int objectColor, float specularIntensity, float specularPower,
@@ -251,9 +271,23 @@ namespace Template
         public int GetColor(float x, float y, float z) => (int)(255 * x + 255 * y + 255 * z);
 
 
-        public int Steps = 8;
-        public float TranslateX(float x) => screen.width / 2 + (x + Steps / 2) * (screen.width / (Steps * 2));
-        public float TranslateY(float y) => (-y + Steps / 2) * screen.height / Steps;
+        public int Steps = 8; // -4 = 600, 0 = 900, 4 = 1200
+
+        public int TranslateX(float x)
+        {
+            if (x < -4) return screen.width / 2;
+            if (x > 4) return screen.width;
+
+            return (int)(screen.width / 2 + (x + Steps / 2) * (screen.width / (Steps * 2)));
+        }
+
+        public int TranslateZ(float z)
+        {
+            if (z < -4) return screen.height;
+            if (z > 4) return 0;
+
+            return (int)((-z + Steps / 2) * screen.height / Steps);
+        } 
 
 
         private Vector3 CalculateColor(Vector3 intersectionPoint)

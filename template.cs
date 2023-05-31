@@ -76,7 +76,7 @@ namespace Template
         public OpenTKApp()
             : base(GameWindowSettings.Default, new NativeWindowSettings()
             {
-                Size = new Vector2i(600, 600),
+                Size = new Vector2i(1200, 600),
                 Profile = allowPrehistoricOpenGL ? ContextProfile.Compatability : ContextProfile.Core,
                 Flags = allowPrehistoricOpenGL ? ContextFlags.Default : ContextFlags.ForwardCompatible,
             })
@@ -182,7 +182,7 @@ namespace Template
                 GL.LoadIdentity();
                 GL.Ortho(-1.0, 1.0, -1.0, 1.0, 0.0, 4.0);
             }
-            app?.AdjustAspectRatio(ClientSize.X, ClientSize.Y);
+            app?.AdjustAspectRatio();
         }
 
         // called once per frame; app logic
@@ -196,15 +196,15 @@ namespace Template
             if (keyboard[Keys.Escape]) terminated = true;
         }
 
-        protected override void OnMouseDown(MouseButtonEventArgs mea)
-        {
-            State = mea.Button switch
-            {
-                MouseButton.Left => CursorState.Grabbed,
-                MouseButton.Right => CursorState.Normal,
-                _ => State
-            };
-        }
+        // protected override void OnMouseDown(MouseButtonEventArgs mea)
+        // {
+        //     State = mea.Button switch
+        //     {
+        //         MouseButton.Left => CursorState.Grabbed,
+        //         MouseButton.Right => CursorState.Normal,
+        //         _ => State
+        //     };
+        // }
         // protected override void OnMouseMove(MouseMoveEventArgs mea)
         // {
         //     if (app != null)
