@@ -31,25 +31,12 @@ namespace Template
         public void Init()
         {
             Vector3 cameraPosition = new(0f, 0f, 0f);
-            Vector3 cameraDirection = new(0f, 0f, 1f); // Vector3.Normalize(cameraPosition - Vector3.Zero);
-            Vector3 cameraRight = Vector3.UnitX; // Vector3.Normalize(Vector3.Cross(Vector3.UnitY, cameraDirection));
-            Vector3 cameraUp = Vector3.UnitY; // Vector3.Cross(cameraDirection, cameraRight);
-
-            // E  V  U  d  (R) | C = E + dV
-
-            // camera = new Camera(screen.width, screen.height, new Vector3(0f, 0f, 0f),
-            //     new Vector3(0f, 0f, 1f), Vector3.UnitY, Vector3.UnitX, 1f);
-            Camera = new Camera(screen.width, screen.height, cameraPosition,
-                cameraDirection, cameraUp, cameraRight, 1f);
+            Camera = new Camera(screen.width, screen.height, cameraPosition);
 
             light = new Light(new Vector3(-5f, 7f, -.5f), 255, 255, 255);
             plane = new Plane(new Vector3(0f, 1f, 0f), new Vector3(1,0,2));
             
             sphere = new Sphere(new Vector3(0f, 0f, 6f), 3f);
-            // sphere2 = new Sphere(new Vector3(0f, 0f, 4f), 3f);
-
-            // Primitives.Add(sphere);
-
         }
 
         // tick: renders one frame
@@ -117,17 +104,35 @@ namespace Template
         public void CameraKeyboardInput(KeyboardKeyEventArgs kea, float time)
         {
             const float speed = 1.5f;
+            float ratio = screen.height / screen.width;
 
-            Camera.Position = kea.Key switch
+            switch (kea.Key)
             {
-                Keys.W => Camera.Position -= Camera.Direction * speed * time, // forward
-                Keys.S => Camera.Position += Camera.Direction * speed * time, // backward
-                Keys.A => Camera.Position -= Vector3.Normalize(Vector3.Cross(Camera.Direction, Camera.Up)) * speed * time, // left
-                Keys.D => Camera.Position += Vector3.Normalize(Vector3.Cross(Camera.Direction, Camera.Up)) * speed * time, // right
-                Keys.Space => Camera.Position -= Camera.Up * speed * time, // up
-                Keys.LeftShift => Camera.Position += Camera.Up * speed * time, // down
-                _ => Camera.Position
-            };
+                case Keys.W: // forwards
+                    Camera.Position += Camera.Direction * speed * time;
+                    Camera.UpdateVectors(ratio);
+                    break;
+                case Keys.S: // backwards
+                    Camera.Position -= Camera.Direction * speed * time;
+                    Camera.UpdateVectors(ratio);
+                    break;
+                case Keys.A: // left
+                    Camera.Position -= Camera.Right * speed * time;
+                    Camera.UpdateVectors(ratio);
+                    break;
+                case Keys.D: // right
+                    Camera.Position += Camera.Right * speed * time;
+                    Camera.UpdateVectors(ratio);
+                    break;
+                case Keys.Space: // up
+                    Camera.Position += Camera.Up * speed * time;
+                    Camera.UpdateVectors(ratio);
+                    break;
+                case Keys.LeftShift: // down
+                    Camera.Position -= Camera.Up * speed * time;
+                    Camera.UpdateVectors(ratio);
+                    break;
+            }
         }
 
         // public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
@@ -156,7 +161,7 @@ namespace Template
 
         public void CameraZoom(MouseWheelEventArgs mea)
         {
-            Camera.FOV -= mea.OffsetY;
+            Camera.fov -= mea.OffsetY;
         }
 
         public void AdjustAspectRatio(float x, float y) => Camera.AspectRatio = y / x;

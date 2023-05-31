@@ -10,7 +10,7 @@ public class Camera
     public Vector3 Up { get; set; }
     public Vector3 Right { get; set; }
 
-    public float FOV { get; set; }
+    public float fov { get; set; }
     public float Yaw { get; set; }
     public float Sensitivity { get; set; }
 
@@ -30,29 +30,17 @@ public class Camera
     public Vector3 u;
     public Vector3 v;
 
-    public Camera(int width, int height, Vector3 pos, Vector3 dir, Vector3 up, Vector3 right, float screenDistance)
+    public Camera(int width, int height, Vector3 pos)
     {
-
         Position = pos;
-        Direction = dir;
-        Up = up;
-        Right = right;
-        ScreenDistance = screenDistance;
         ScreenWidth = width;
         ScreenHeight = height;
 
         AspectRatio = (float)ScreenHeight/ScreenWidth;
+        fov = 90f;
         Sensitivity = 0.1f;
 
-        ImagePlaneCenter = Position + ScreenDistance * Direction;
-        p0 = ImagePlaneCenter + Up - AspectRatio * Right;
-        p1 = ImagePlaneCenter + Up + AspectRatio * Right;
-        p2 = ImagePlaneCenter - Up - AspectRatio * Right;
-            
-        u = p1 - p0;
-        v = p2 - p0;
-
-        Console.WriteLine($"Camera: P0: {p0} P1: {p1} P2: {p2} AR: {AspectRatio} dir{Direction}");
+        UpdateVectors(AspectRatio);
     }
 
 
@@ -63,8 +51,21 @@ public class Camera
         return new Ray(Position, rayDirection);
     }
 
-    public void UpdateVectors()
+    public void UpdateVectors(float ratio)
     {
+        Direction = Vector3.UnitZ;
+        Up = Vector3.UnitY;
+        Right = Vector3.UnitX;
 
+        ScreenDistance = Vector3.Distance(Vector3.Zero, ratio * Right) /
+                         (float)MathHelper.Tan(MathHelper.DegreesToRadians(0.5 * fov));
+
+        ImagePlaneCenter = Position + ScreenDistance * Direction;
+        p0 = ImagePlaneCenter + Up - AspectRatio * Right;
+        p1 = ImagePlaneCenter + Up + AspectRatio * Right;
+        p2 = ImagePlaneCenter - Up - AspectRatio * Right;
+
+        u = p1 - p0;
+        v = p2 - p0;
     }
 }
