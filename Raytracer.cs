@@ -1,7 +1,6 @@
-﻿namespace INFOGR2023Template
-{
-    internal class Raytracer
-    {
+﻿namespace INFOGR2023Template;
 
-    }
+internal class Raytracer
+{
+
 }

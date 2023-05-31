@@ -45,6 +45,8 @@ namespace Template
         MyApplication? app;      // instance of the application
         bool terminated = false; // application terminates gracefully when this is true
 
+        private float deltaTime;
+
         // The following variables are only needed in Modern OpenGL
         public int vertexArrayObject;
         public int vertexBufferObject;
@@ -148,7 +150,12 @@ namespace Template
                 GL.Uniform1(GL.GetUniformLocation(programID, "pixels"), 0);
             }
             // Register events to adjust the camera based on mouse and keyboard input.
-            this.KeyDown += app.AdjustCamera;
+            // button.Click += delegate(object sender2, EventArgs e2)
+            // {
+            //     show_msg(sender2, e2, s);
+            // };
+
+            this.KeyDown += ea => app.AdjustCamera(ea, deltaTime);
 
             app.Init();
         }
@@ -170,11 +177,15 @@ namespace Template
                 GL.Ortho(-1.0, 1.0, -1.0, 1.0, 0.0, 4.0);
             }
         }
+
+        // called once per frame; app logic
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
-            // called once per frame; app logic
-            var keyboard = KeyboardState;
+
+            deltaTime = (float)e.Time;
+
+            KeyboardState? keyboard = KeyboardState;
             if (keyboard[Keys.Escape]) terminated = true;
         }
         protected override void OnRenderFrame(FrameEventArgs e)

@@ -1,8 +1,8 @@
+using System.Numerics;
 using INFOGR2023Template;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Vector3 = OpenTK.Mathematics.Vector3;
-using System.Numerics;
 
 namespace Template
 {
@@ -11,7 +11,7 @@ namespace Template
         // member variables
         public Surface screen;
         public Primitives Primitives;
-        public Camera camera;
+        public Camera Camera;
         public Sphere sphere;
         public Sphere sphere2;
         public Light light;
@@ -26,13 +26,22 @@ namespace Template
         // initialize
         public void Init()
         {
+            Vector3 cameraPosition = new(0f, 0f, 0f);
+            Vector3 cameraDirection = new(0f, 0f, 1f); // Vector3.Normalize(cameraPosition - Vector3.Zero);
+            Vector3 cameraRight = Vector3.UnitX; // Vector3.Normalize(Vector3.Cross(Vector3.UnitY, cameraDirection));
+            Vector3 cameraUp = Vector3.UnitY; // Vector3.Cross(cameraDirection, cameraRight);
+
             // E  V  U  d  (R) | C = E + dV
-            camera = new Camera(screen.width, screen.height, new Vector3(0f, 0f, 0f),
-                new Vector3(0f, 0f, 1f), Vector3.UnitY, Vector3.UnitX, 1f);
+
+            // camera = new Camera(screen.width, screen.height, new Vector3(0f, 0f, 0f),
+            //     new Vector3(0f, 0f, 1f), Vector3.UnitY, Vector3.UnitX, 1f);
+            Camera = new Camera(screen.width, screen.height, cameraPosition,
+                cameraDirection, cameraUp, cameraRight, 1f);
+
             light = new Light(new Vector3(-5f, 07f, -.5f), 255, 255, 255);
             Primitives = new Primitives();
-            sphere = new Sphere(new Vector3(1f, 0f, 6f), 3f);
-            sphere2 = new Sphere(new Vector3(0f, 0f, 4f), 3f);
+            sphere = new Sphere(new Vector3(0f, 0f, 6f), 3f);
+            // sphere2 = new Sphere(new Vector3(0f, 0f, 4f), 3f);
 
             // Primitives.Add(sphere);
 
@@ -42,10 +51,7 @@ namespace Template
         public void Tick()
         {
             screen.Clear(0);
-
-            int count = 0;
-
-
+            
             for (int i = 0; i < 600; i++)
             {
                 for (int j = 0; j < 600; j++)
@@ -54,18 +60,13 @@ namespace Template
                     double y = -1.0 + ((double)i / 299.0);
                     double x = -1.0 + ((double)j / 299.0);
 
-                    //Console.WriteLine($"X:{x} Y: {y}");
-
-                    Vector3 Punty = camera.p0 + (float)x * camera.u + (float)y * camera.v;
-
-
-                    // Console.WriteLine(Punty);
+                    Vector3 Punty = Camera.p0 + (float)x * Camera.u + (float)y * Camera.v;
 
                     // Create a ray from the camera position through the current pixel
-                    Ray viewRay = camera.GetRay(Punty);
+                    Ray viewRay = Camera.GetRay(Punty);
 
                     Vector3 intersectionPoint;
-                    if (sphere.HitRay(viewRay, camera, out intersectionPoint))
+                    if (sphere.HitRay(viewRay, Camera, out intersectionPoint))
                     {
                         // hap slik weg ofzo idk anymore
                         Vector3 Normal = Vector3.Normalize(intersectionPoint - sphere.Center);
@@ -77,40 +78,30 @@ namespace Template
                                 Normal, 0xFFFFFF, .001f, 10, 0.051f);
                             screen.pixels[i * screen.width + j] = color;
                         }
-                        else
-                        {
-                            screen.pixels[i * screen.width + j] = 0x000000;
-                        }
                     }
-
-                        //Speciaal voor Robin wat lege regels en verneukte tabs, dan verveel je je wat  minder tijdens het
-
-
-
-
-
-
-
-                        // lezen.
-
                 }
             }
         }
 
-        public void AdjustCamera(KeyboardKeyEventArgs ea)
+        public void CameraKeyboardInput(KeyboardKeyEventArgs kea, float time)
         {
-            camera.Position = ea.Key switch
-            {
-                Keys.Space => (camera.Position.X, camera.Position.Y + 1, camera.Position.Z),
-                Keys.LeftShift => (camera.Position.X, camera.Position.Y - 1, camera.Position.Z),
-                Keys.W => (camera.Position.X, camera.Position.Y, camera.Position.Z + 1),
-                Keys.S => (camera.Position.X, camera.Position.Y, camera.Position.Z - 1),
-                Keys.D => (camera.Position.X + 1, camera.Position.Y, camera.Position.Z),
-                Keys.A => (camera.Position.X - 1, camera.Position.Y, camera.Position.Z),
-                _ => camera.Position
-            };
+            const float speed = 1.5f;
 
-            Console.WriteLine(camera.Position);
+            Camera.Position = kea.Key switch
+            {
+                Keys.W => Camera.Position -= Camera.Direction * speed * time, // forward
+                Keys.S => Camera.Position += Camera.Direction * speed * time, // backward
+                Keys.A => Camera.Position -= Vector3.Normalize(Vector3.Cross(Camera.Direction, Camera.Up)) * speed * time, // left
+                Keys.D => Camera.Position += Vector3.Normalize(Vector3.Cross(Camera.Direction, Camera.Up)) * speed * time, // right
+                Keys.Space => Camera.Position -= Camera.Up * speed * time, // up
+                Keys.LeftShift => Camera.Position += Camera.Up * speed * time, // down
+                _ => Camera.Position
+            };
+        }
+
+        public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
+        {
+            
         }
 
         public int ItTakesAllColoursToMakeARainbow(int lightColor, Vector3 lightDirection, Vector3 viewDirection,
