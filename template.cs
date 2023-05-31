@@ -62,6 +62,17 @@ namespace Template
              1.0f,  1.0f, 0.0f, 1.0f, 0.0f, // top-right    0-----1
         };
 
+        /// <summary>
+        /// Indicates the current state of the cursor.
+        /// Has to be custom written because our GameWindow for some reason doesn't have it.
+        /// </summary>
+        public enum CursorState
+        {
+            Grabbed,
+            Normal
+        }
+        public CursorState State = CursorState.Normal;
+
         public OpenTKApp()
             : base(GameWindowSettings.Default, new NativeWindowSettings()
             {
@@ -150,11 +161,6 @@ namespace Template
                 GL.Uniform1(GL.GetUniformLocation(programID, "pixels"), 0);
             }
             // Register events to adjust the camera based on mouse and keyboard input.
-            // button.Click += delegate(object sender2, EventArgs e2)
-            // {
-            //     show_msg(sender2, e2, s);
-            // };
-
             this.KeyDown += ea => app.CameraKeyboardInput(ea, deltaTime);
 
             app.Init();
@@ -176,6 +182,7 @@ namespace Template
                 GL.LoadIdentity();
                 GL.Ortho(-1.0, 1.0, -1.0, 1.0, 0.0, 4.0);
             }
+            app?.AdjustAspectRatio(ClientSize.X, ClientSize.Y);
         }
 
         // called once per frame; app logic
@@ -188,6 +195,35 @@ namespace Template
             KeyboardState? keyboard = KeyboardState;
             if (keyboard[Keys.Escape]) terminated = true;
         }
+
+        protected override void OnMouseDown(MouseButtonEventArgs mea)
+        {
+            State = mea.Button switch
+            {
+                MouseButton.Left => CursorState.Grabbed,
+                MouseButton.Right => CursorState.Normal,
+                _ => State
+            };
+        }
+        // protected override void OnMouseMove(MouseMoveEventArgs mea)
+        // {
+        //     if (app != null)
+        //     {
+        //         if (State == CursorState.Grabbed)
+        //         {
+        //             app.MouseDownKeyboardInput(mea);
+        //         }
+        //     }
+        // }
+
+        protected override void OnMouseWheel(MouseWheelEventArgs mea)
+        {
+            if (app != null)
+            {
+                app.CameraZoom(mea);
+            }
+        }
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
@@ -224,8 +260,7 @@ namespace Template
                     GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
                 }
             }
-
-            //app.vliegtuig.Render();
+            
             // tell OpenTK we're done rendering
             SwapBuffers();
         }

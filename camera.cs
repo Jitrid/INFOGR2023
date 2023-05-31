@@ -11,6 +11,8 @@ public class Camera
     public Vector3 Right { get; set; }
 
     public float FOV { get; set; }
+    public float Yaw { get; set; }
+    public float Sensitivity { get; set; }
 
     public float ScreenDistance { get; set; }
 
@@ -39,7 +41,8 @@ public class Camera
         ScreenWidth = width;
         ScreenHeight = height;
 
-        AspectRatio = (float)ScreenHeight/ScreenWidth ;
+        AspectRatio = (float)ScreenHeight/ScreenWidth;
+        Sensitivity = 0.1f;
 
         ImagePlaneCenter = Position + ScreenDistance * Direction;
         p0 = ImagePlaneCenter + Up - AspectRatio * Right;
@@ -58,5 +61,10 @@ public class Camera
         Vector3 rayDirection = Vector3.Normalize(point - Position);
             
         return new Ray(Position, rayDirection);
+    }
+
+    public void UpdateVectors()
+    {
+
     }
 }
