@@ -2,7 +2,7 @@
 
 namespace INFOGR2023Template;
 
-public class Sphere
+public class Sphere : Primitive
 {
     public Vector3 Center { get; }
     public float Radius { get; }
@@ -13,13 +13,13 @@ public class Sphere
         Radius = radius;
     }
 
-    public bool HitRay(Ray ray, Camera camera, out Vector3 intersect)
+    public override bool HitRay(Ray ray, out Vector3 intersect)
     {
         intersect = Vector3.Zero;
 
         float a = Vector3.Dot(ray.Direction, ray.Direction);
-        float b = 2 * (Vector3.Dot(camera.Position, ray.Direction) - Vector3.Dot(this.Center, ray.Direction));
-        float c = Vector3.Dot(this.Center, this.Center) + Vector3.Dot(camera.Position, camera.Position) - 2 * Vector3.Dot(this.Center, camera.Position) - (this.Radius * this.Radius);
+        float b = 2 * (Vector3.Dot(ray.Origin, ray.Direction) - Vector3.Dot(this.Center, ray.Direction));
+        float c = Vector3.Dot(this.Center, this.Center) + Vector3.Dot(ray.Origin, ray.Origin) - 2 * Vector3.Dot(this.Center, ray.Origin) - (this.Radius * this.Radius);
         float discriminant = b * b - 4 * a * c;
 
         //Console.WriteLine(discriminant);
@@ -45,7 +45,14 @@ public class Sphere
 
         return false;
     }
-    public bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
+
+    public override Vector3 GetNormal(Vector3 point)
+    {
+        Vector3 Normal = Vector3.Normalize(point - Center);
+        return Normal;
+    }
+
+    public override bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
     {
         direction = lightPosition - intersectionPoint;
         Ray ray = new Ray(intersectionPoint, direction);
@@ -70,4 +77,5 @@ public class Sphere
 
         return true;
     }
+
 }

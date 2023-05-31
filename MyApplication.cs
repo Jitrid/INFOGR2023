@@ -2,6 +2,7 @@ using System.Numerics;
 using INFOGR2023Template;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using Plane = INFOGR2023Template.Plane;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Template
@@ -10,8 +11,8 @@ namespace Template
     {
         // member variables
         public Surface screen;
-        public Primitives Primitives;
         public Camera Camera;
+        public Plane plane;
         public Sphere sphere;
         public Sphere sphere2;
         public Light light;
@@ -41,8 +42,9 @@ namespace Template
             Camera = new Camera(screen.width, screen.height, cameraPosition,
                 cameraDirection, cameraUp, cameraRight, 1f);
 
-            light = new Light(new Vector3(-5f, 07f, -.5f), 255, 255, 255);
-            Primitives = new Primitives();
+            light = new Light(new Vector3(-5f, 7f, -.5f), 255, 255, 255);
+            plane = new Plane(new Vector3(-1f, 0f, 0f), new Vector3(0,0,3));
+            
             sphere = new Sphere(new Vector3(0f, 0f, 6f), 3f);
             // sphere2 = new Sphere(new Vector3(0f, 0f, 4f), 3f);
 
@@ -67,12 +69,28 @@ namespace Template
 
                     // Create a ray from the camera position through the current pixel
                     Ray viewRay = Camera.GetRay(Punty);
+                    //plane
+                    if (plane.HitRay(viewRay, out Vector3 intersectP))
+                    {
+                        Vector3 lightDirection = Vector3.Normalize(light.Location - intersectP);
+                        Ray lightRay = new Ray(intersectP, lightDirection);
+                        if (!sphere.HitRay(lightRay, out Vector3 lightIntersect))
+                        {
+                            int color = ItTakesAllColoursToMakeARainbow(0xFFFFFF, Vector3.Normalize(lightRay.Direction), viewRay.Direction,
+                                plane.GetNormal(intersectP), 0x00FF00, .001f, 10, 0.051f);
+                            screen.pixels[i * screen.width + j] = color;
+                        }
+                        else
+                        {
+                            screen.pixels[i * screen.width + j] = 0;
+                        }
+                    }
 
                     Vector3 intersectionPoint;
-                    if (sphere.HitRay(viewRay, Camera, out intersectionPoint))
+                    if (sphere.HitRay(viewRay, out intersectionPoint))
                     {
                         // hap slik weg ofzo idk anymore
-                        Vector3 Normal = Vector3.Normalize(intersectionPoint - sphere.Center);
+                        Vector3 Normal = sphere.GetNormal(intersectionPoint);
                         if (sphere.IntersectsWithLight(intersectionPoint, light.Location, out Vector3 lightDir))
                         {
 
@@ -86,6 +104,16 @@ namespace Template
             }
         }
 
+    
+
+        public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
+        {
+            if (FirstMove)
+            {
+                LastMousePosition = new Vector2(mea.X, mea.Y);
+                FirstMove = false;
+            }
+        }
         public void CameraKeyboardInput(KeyboardKeyEventArgs kea, float time)
         {
             const float speed = 1.5f;
@@ -102,14 +130,36 @@ namespace Template
             };
         }
 
-        public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
+        // public void MouseDownKeyboardInput(MouseMoveEventArgs mea)
+        // {
+        //     Camera.Yaw += mea.DeltaX * Camera.Sensitivity;
+        //     Camera.Pitch -= mea.DeltaY * Camera.Sensitivity;
+        //
+        //     switch (Camera.Pitch)
+        //     {
+        //         case > 89.0f:
+        //             Camera.Pitch = 89.0f;
+        //             break;
+        //         case < -89.0f:
+        //             Camera.Pitch = -89.0f;
+        //             break;
+        //         default:
+        //             Camera.Pitch -= mea.DeltaX * Camera.Sensitivity;
+        //             break;
+        //     }
+        //     Camera.Direction = Vector3.Normalize(new Vector3(
+        //         (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Yaw)),
+        //         (float)Math.Sin(MathHelper.DegreesToRadians(Camera.Pitch)),
+        //         (float)Math.Cos(MathHelper.DegreesToRadians(Camera.Pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(Camera.Yaw)))
+        //     );
+        // }
+
+        public void CameraZoom(MouseWheelEventArgs mea)
         {
-            if (FirstMove)
-            {
-                LastMousePosition = new Vector2(mea.X, mea.Y);
-                FirstMove = false;
-            }
+            Camera.FOV -= mea.OffsetY;
         }
+
+        public void AdjustAspectRatio(float x, float y) => Camera.AspectRatio = y / x;
 
         public int ItTakesAllColoursToMakeARainbow(int lightColor, Vector3 lightDirection, Vector3 viewDirection,
             Vector3 normal, int objectColor, float specularIntensity, float specularPower,
