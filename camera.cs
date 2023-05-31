@@ -39,7 +39,7 @@ public class Camera
         ScreenWidth = width;
         ScreenHeight = height;
 
-        AspectRatio = 0.25f;
+        AspectRatio = (float)ScreenHeight/ScreenWidth ;
 
         ImagePlaneCenter = Position + ScreenDistance * Direction;
         p0 = ImagePlaneCenter + Up - AspectRatio * Right;
@@ -52,14 +52,6 @@ public class Camera
         Console.WriteLine($"Camera: P0: {p0} P1: {p1} P2: {p2} AR: {AspectRatio} dir{Direction}");
     }
 
-    public Matrix4 Projection(float aspectRatio)
-    {
-        float left = -ScreenWidth / 2;
-        float right = ScreenWidth / 2;
-        float top = ScreenHeight / 2;
-        float bottom = -ScreenHeight / 2;
-        return Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, ScreenDistance, 1000f);
-    }
 
     public Ray GetRay(Vector3 point)
     {

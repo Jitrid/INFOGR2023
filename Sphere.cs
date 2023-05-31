@@ -22,6 +22,7 @@ public class Sphere
         float c = Vector3.Dot(this.Center, this.Center) + Vector3.Dot(camera.Position, camera.Position) - 2 * Vector3.Dot(this.Center, camera.Position) - (this.Radius * this.Radius);
         float discriminant = b * b - 4 * a * c;
 
+        //Console.WriteLine(discriminant);
         if (discriminant < 0)
         {
             intersect = Vector3.Zero;
@@ -33,15 +34,40 @@ public class Sphere
 
         if (t1 > 0)
         {
-            intersect = ray.Origin + t1 * ray.Direction;
+            intersect = ray.Origin + (t1 + 0.0001f) * ray.Direction;
             return true;
         }
         if (t2 > 0)
         {
-            intersect = ray.Origin + t2 * ray.Direction;
+            intersect = ray.Origin + (t1 - 0.0001f) * ray.Direction;
             return true;
         }
 
         return false;
+    }
+    public bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
+    {
+        direction = lightPosition - intersectionPoint;
+        Ray ray = new Ray(intersectionPoint, direction);
+
+        float a = Vector3.Dot(ray.Direction, ray.Direction);
+        float b = 2 * Vector3.Dot(this.Center, ray.Direction);
+        float c = Vector3.Dot(this.Center, this.Center) - (this.Radius * this.Radius);
+        float discriminant = b * b - 4 * a * c;
+
+        if (discriminant < 0)
+        {
+            return true;
+        }
+
+        float t1 = (float)(-b - Math.Sqrt(discriminant)) / (2 * a);
+        float t2 = (float)(-b + Math.Sqrt(discriminant)) / (2 * a);
+
+        if (t1 > 0 || t2 > 0)
+        {
+            return false;
+        }
+
+        return true;
     }
 }
