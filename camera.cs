@@ -1,51 +1,101 @@
 ﻿using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace INFOGR2023Template;
 
+/// <summary>
+/// Represents the camera from which the user looks at the scene.
+/// </summary>
 public class Camera
 {
-    public Vector3 Position { get; set; }
-    public Vector3 Direction { get; set; } // look-at direction
+    /// <summary>
+    /// The current position of the camera (default: 0, 0, 0).
+    /// </summary>
+    public Vector3 Position;
+    /// <summary>
+    /// The direction in which the camera is pointed (z-axis).
+    /// </summary>
+    public Vector3 Direction;
+    /// <summary>
+    /// The "up" direction of the camera (y-axis).
+    /// </summary>
+    public Vector3 Up;
+    /// <summary>
+    /// The "right" direction of the camera (x-axis).
+    /// </summary>
+    public Vector3 Right;
+    /// <summary>
+    /// The distance between the camera and the screen plane.
+    /// </summary>
+    public float ScreenDistance;
 
-    public Vector3 Up { get; set; }
-    public Vector3 Right { get; set; }
+    /// <summary>
+    /// The Field of View of the camera.
+    /// </summary>
+    public float FOV;
+    /// <summary>
+    /// The sensitivity for moving the camera.
+    /// </summary>
+    public float Sensitivity;
 
-    public float fov { get; set; }
-    public float Yaw { get; set; }
-    public float Pitch { get; set; }
-    public float Sensitivity { get; set; }
+    /// <summary>
+    /// The rotation around the side-to-side axis.
+    /// </summary>
+    public float Pitch;
+    /// <summary>
+    /// The rotation around the vertical axis.
+    /// </summary>
+    public float Yaw;
 
-    public float ScreenDistance { get; set; }
-
-    public int ScreenWidth { get; set; }
-    public int ScreenHeight { get; set; }
-
+    /// <summary>
+    /// The current aspect ratio of screen, excluding the debug window.
+    /// </summary>
     public float AspectRatio;
 
+    /// <summary>
+    /// The image plane center.
+    /// </summary>
     public Vector3 ImagePlaneCenter;
-    public Vector3 p0;
-    public Vector3 p1;
-    public Vector3 p2;
-
-    // screen plane orthonormal basis
-    public Vector3 u;
-    public Vector3 v;
+    /// <summary>
+    /// The top-left position on the screen.
+    /// </summary>
+    public Vector3 P0;
+    /// <summary>
+    /// The top-right position on the screen.
+    /// </summary>
+    public Vector3 P1;
+    /// <summary>
+    /// The bottom-left position on the screen.
+    /// </summary>
+    public Vector3 P2;
+    
+    // These together form an orthonormal basis.
+    public Vector3 U;
+    public Vector3 V;
 
     public Camera(float ratio, Vector3 pos)
     {
-        Position = pos;
+        Position = pos; // Starting value: (0, 0, 0)
+        Direction = Vector3.UnitZ; // (0, 0, 1)
+        Up = Vector3.UnitY;        // (0, 1, 0)
+        Right = Vector3.UnitX;     // (1, 0, 0)
 
         AspectRatio = ratio;
 
         Pitch = 0f;
         Yaw = 0f;
-        fov = 90f;
+        FOV = 60f;
         Sensitivity = 0.1f;
 
+        // Initialize the first values of the vectors.
         UpdateVectors(AspectRatio);
     }
 
-
+    /// <summary>
+    /// Generates a ray from the camera to a certain point.
+    /// </summary>
+    /// <param name="point">The point to send the ray to.</param>
     public Ray GetRay(Vector3 point)
     {
         Vector3 rayDirection = Vector3.Normalize(point - Position);
@@ -53,23 +103,102 @@ public class Camera
         return new Ray(Position, rayDirection);
     }
 
+    /// <summary>
+    /// Updates the various vectors available within the camera class when the position and/or aspect ratio are updated.
+    /// </summary>
+    /// <param name="ratio">The current aspect ratio of the left side of the screen.</param>
     public void UpdateVectors(float ratio)
     {
-        Direction = Vector3.UnitZ;
-        Up = Vector3.UnitY;
-        Right = Vector3.UnitX;
-
-        ScreenDistance = Vector3.Distance(Vector3.Zero, ratio * Right) /
-                         (float)MathHelper.Tan(MathHelper.DegreesToRadians(0.5 * fov));
+        ScreenDistance = Vector3.Distance(Vector3.Zero, ratio * Right) / 
+                         (float)MathHelper.Tan(MathHelper.DegreesToRadians(0.5 * FOV));
 
         ImagePlaneCenter = Position + ScreenDistance * Direction;
-        p0 = ImagePlaneCenter + Up - ratio * Right;
-        p1 = ImagePlaneCenter + Up + ratio * Right;
-        p2 = ImagePlaneCenter - Up - ratio * Right;
+        P0 = ImagePlaneCenter + Up - ratio * Right;
+        P1 = ImagePlaneCenter + Up + ratio * Right;
+        P2 = ImagePlaneCenter - Up - ratio * Right;
 
-        Console.WriteLine($"P0: {p0}, P1: {p1}, P2: {p2}");
+        U = P1 - P0;
+        V = P2 - P0;
+    }
 
-        u = p1 - p0;
-        v = p2 - p0;
+    /// <summary>
+    /// Moves the camera on one of the axis based on certain key binds.
+    /// </summary>
+    /// <param name="time">The frame's "delta time" to determine performance and generalize the effect for all systems.</param>
+    public void CameraKeyboardInput(KeyboardKeyEventArgs kea, float time)
+    {
+        const float speed = 1.5f;
+
+        switch (kea)
+        {
+            case { Key: Keys.W }: // forwards
+                Position += Direction * speed * time;
+                UpdateVectors(AspectRatio);
+                break;
+            case { Key: Keys.S }: // backwards
+                Position -= Direction * speed * time;
+                UpdateVectors(AspectRatio);
+                break;
+            case { Key: Keys.A }: // left
+                Position -= Right * speed * time;
+                UpdateVectors(AspectRatio);
+                break;
+            case { Key: Keys.D }: // right
+                Position += Right * speed * time;
+                UpdateVectors(AspectRatio);
+                break;
+            case { Key: Keys.Space }: // up
+                Position += Up * speed * time;
+                UpdateVectors(AspectRatio);
+                break;
+            case { Key: Keys.LeftShift }: // down
+                Position -= Up * speed * time;
+                UpdateVectors(AspectRatio);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Rotates the camera accordingly based on mouse movement.
+    /// </summary>
+    public void RotationInput(MouseMoveEventArgs mea)
+    {
+        Yaw += mea.DeltaX * Sensitivity;
+        Pitch -= mea.DeltaY * Sensitivity;
+
+        switch (Pitch)
+        {
+            case > 89.0f:
+                Pitch = 89.0f;
+                break;
+            case < -89.0f:
+                Pitch = -89.0f;
+                break;
+            default:
+                Pitch -= mea.DeltaX * Sensitivity;
+                break;
+        }
+
+        Quaternion xRotation = Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(-Pitch), 0, 0);
+        Direction = Vector3.Transform(Vector3.UnitZ, xRotation);
+        Up = Vector3.Transform(Vector3.UnitY, xRotation);
+        Right = Vector3.Transform(Vector3.UnitX, xRotation);
+
+        Quaternion yRotation = Quaternion.FromEulerAngles(0, MathHelper.DegreesToRadians(Yaw), 0);
+        Direction = Vector3.Transform(Direction, yRotation);
+        Up = Vector3.Transform(Up, yRotation);
+        Right = Vector3.Transform(Right, yRotation);
+
+        UpdateVectors(AspectRatio);
+    }
+
+    /// <summary>
+    /// Adjusts the camera's FOV to create a "zoom" effect.
+    /// </summary>
+    public void CameraZoom(MouseWheelEventArgs mea)
+    {
+        FOV -= mea.OffsetY;
+
+        UpdateVectors(AspectRatio);
     }
 }
