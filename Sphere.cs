@@ -46,16 +46,12 @@ public class Sphere : Primitive
         return false;
     }
 
-    public override Vector3 GetNormal(Vector3 point)
-    {
-        Vector3 Normal = Vector3.Normalize(point - Center);
-        return Normal;
-    }
+    public override Vector3 GetNormal(Vector3 point) => Vector3.Normalize(point - Center);
 
     public override bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
     {
         direction = lightPosition - intersectionPoint;
-        Ray ray = new Ray(intersectionPoint, direction);
+        Ray ray = new(intersectionPoint, direction);
 
         float a = Vector3.Dot(ray.Direction, ray.Direction);
         float b = 2 * Vector3.Dot(this.Center, ray.Direction);

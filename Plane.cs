@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Vector3 = OpenTK.Mathematics.Vector3;
+﻿using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 

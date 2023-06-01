@@ -2,18 +2,27 @@
 
 namespace INFOGR2023Template;
 
+/// <summary>
+/// Represents a light source in the scene that omits light at a certain intensity.
+/// </summary>
 internal class Light
 {
+    /// <summary>
+    /// The location of the light source.
+    /// </summary>
     public Vector3 Location;
 
+    /// <summary>
+    /// Represent their respective color values.
+    /// </summary>
     public float R, G, B;
 
     public Light(Vector3 location, float red, float green, float blue)
     {
-        this.Location = location;
-        this.R = red;
-        this.G = green;
-        this.B = blue;
+        Location = location;
+        R = red;
+        G = green;
+        B = blue;
     }
 
     public Vector3 LightRay(Vector3 intersection)

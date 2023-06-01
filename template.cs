@@ -21,7 +21,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 // tutorial. After the tutorial you can throw away this template code, or modify it at
 // will, or maybe it simply suits your needs.
 
-namespace Template
+namespace INFOGR2023Template
 {
     public class OpenTKApp : GameWindow
     {
@@ -42,7 +42,7 @@ namespace Template
         public const bool allowPrehistoricOpenGL = false;
 
         int screenID;            // unique integer identifier of the OpenGL texture
-        MyApplication? app;      // instance of the application
+        Application? app;      // instance of the application
         bool terminated = false; // application terminates gracefully when this is true
 
         private float deltaTime;
@@ -91,8 +91,8 @@ namespace Template
             GL.Disable(EnableCap.DepthTest);
 
             Surface screen = new(ClientSize.X, ClientSize.Y);
-            app = new MyApplication(screen);
-            screenID = app.screen.GenTexture();
+            app = new Application(screen);
+            screenID = app.Screen.GenTexture();
             
             if (allowPrehistoricOpenGL)
             {
@@ -161,7 +161,7 @@ namespace Template
                 GL.Uniform1(GL.GetUniformLocation(programID, "pixels"), 0);
             }
             // Register events to adjust the camera based on mouse and keyboard input.
-            this.KeyDown += ea => app.CameraKeyboardInput(ea, deltaTime);
+            this.KeyDown += ea => app.CallMovement(ea, deltaTime);
 
             app.Init();
         }
@@ -182,7 +182,7 @@ namespace Template
                 GL.LoadIdentity();
                 GL.Ortho(-1.0, 1.0, -1.0, 1.0, 0.0, 4.0);
             }
-            app?.AdjustAspectRatio();
+            // app?.AdjustAspectRatio();
         }
 
         // called once per frame; app logic
@@ -196,32 +196,28 @@ namespace Template
             if (keyboard[Keys.Escape]) terminated = true;
         }
 
-        // protected override void OnMouseDown(MouseButtonEventArgs mea)
-        // {
-        //     State = mea.Button switch
-        //     {
-        //         MouseButton.Left => CursorState.Grabbed,
-        //         MouseButton.Right => CursorState.Normal,
-        //         _ => State
-        //     };
-        // }
-        // protected override void OnMouseMove(MouseMoveEventArgs mea)
-        // {
-        //     if (app != null)
-        //     {
-        //         if (State == CursorState.Grabbed)
-        //         {
-        //             app.MouseDownKeyboardInput(mea);
-        //         }
-        //     }
-        // }
+        protected override void OnMouseDown(MouseButtonEventArgs mea)
+        {
+            State = mea.Button switch
+            {
+                MouseButton.Left => CursorState.Grabbed,
+                MouseButton.Right => CursorState.Normal,
+                _ => State
+            };
+        }
+
+        protected override void OnMouseMove(MouseMoveEventArgs mea)
+        {
+            if (app == null) return;
+            if (State == CursorState.Grabbed)
+            {
+                app.CallRotation(mea);
+            }
+        }
 
         protected override void OnMouseWheel(MouseWheelEventArgs mea)
         {
-            if (app != null)
-            {
-                app.CameraZoom(mea);
-            }
+            app?.CallZoom(mea);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -239,9 +235,9 @@ namespace Template
             {
                 GL.BindTexture(TextureTarget.Texture2D, screenID);
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                               app.screen.width, app.screen.height, 0,
+                               app.Screen.width, app.Screen.height, 0,
                                PixelFormat.Bgra,
-                               PixelType.UnsignedByte, app.screen.pixels
+                               PixelType.UnsignedByte, app.Screen.pixels
                              );
                 // draw screen filling quad
                 if (allowPrehistoricOpenGL)
