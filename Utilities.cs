@@ -7,7 +7,7 @@ public class Utilities
     /// <summary>
     /// The amount of steps to be used for the coordinate system.
     /// </summary>
-    private const int Steps = 16;
+    public const int Steps = 16;
 
     /// <summary>
     /// Translates an x-axis coordinate into an appropriate screen width.

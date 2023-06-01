@@ -35,7 +35,7 @@ class Application
         Camera = new Camera(_aspectRatio, cameraPosition);
 
         Light = new Light(new Vector3(-5f, 7f, -.5f), 255, 255, 255);
-        Plane = new Plane(new Vector3(0f, 1f, 0f), new Vector3(1,0,2));
+        Plane = new Plane(new Vector3(0f, -1f, 0f), new Vector3(0,0,2));
             
         Sphere = new Sphere(new Vector3(0f, 0f, 6f), 3f);
     }
@@ -46,21 +46,31 @@ class Application
     public void Tick()
     {
         Screen.Clear(0);
+
+        int count = 0;
+        int c = 0;
             
         for (int i = 0; i < Screen.height; i++) // y
         {
             for (int j = 0; j < Screen.width / 2; j++) // x
             {
                 Screen.pixels[i * Screen.width + j] = 0x304080;
-                // double y = -1.0 + i / 299.0;
-                // double x = -1.0 + j / 299.0;
-                double y = -1.0 + i / ((double)(Screen.height / 2) - 1);
-                double x = -1.0 + j / ((double)(Screen.width / 4) - 1);
+                double y = Camera.P0.Y - i / ((double)(Screen.height / 2) - Camera.P0.Y);
+                double x = Camera.P0.X + j / ((double)(Screen.width / 4) - Camera.P0.X); // pixel indices
 
                 Vector3 punty = Camera.P0 + (float)x * Camera.U + (float)y * Camera.V;
 
                 // Create a ray from the camera position through the current pixel
                 Ray viewRay = Camera.GetRay(punty);
+                if (c == 0) 
+                {
+                    Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X), Utilities.TranslateZ(Screen, Camera.Position.Z), 
+                    Utilities.TranslateX(Screen, (float)(x)), Utilities.TranslateZ(Screen, (float)y), 255 << 8);
+
+                    // Console.WriteLine(x + ", " + y);
+                }
+                c++;
+
                 //plane
                 if (Plane.HitRay(viewRay, out Vector3 intersectP))
                 {
@@ -80,11 +90,12 @@ class Application
 
                 if (Sphere.HitRay(viewRay, out Vector3 intersectionPoint))
                 {
-                    if (Count % 10 == 0)
+                    if (count == 0)
                     {
                         Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X), Utilities.TranslateZ(Screen, Camera.Position.Z), 
                             Utilities.TranslateX(Screen, intersectionPoint.X), Utilities.TranslateZ(Screen, intersectionPoint.Z), 255);
                     }
+                    count++;
 
                     // hap slik weg ofzo idk anymore
                     Vector3 normal = Sphere.GetNormal(intersectionPoint);
@@ -96,20 +107,29 @@ class Application
                         Screen.pixels[i * Screen.width + j] = color;
                     }
                 }
-                else
-                {
-                    if (Count % 100000 == 0)
-                    {
-                        Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X), Utilities.TranslateZ(Screen, Camera.Position.Z), 
-                            Utilities.TranslateX(Screen, viewRay.Direction.X), 0, 255 << 16);
-                    }
-                }
-                Count++;
+                // else
+                // {
+                //     if (Count % 100000 == 0)
+                //     {
+                //         Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X), Utilities.TranslateZ(Screen, Camera.Position.Z), 
+                //             Utilities.TranslateX(Screen, viewRay.Direction.X), 0, 255 << 16);
+                //     }
+                // }
 
                 // TODO: out of bounds als je te ver naar achteren gaat.
                 Screen.pixels[Utilities.TranslateZ(Screen, Camera.Position.Z) * Screen.width + Utilities.TranslateX(Screen, Camera.Position.X)] = 255;
             }
         }
+
+        // Prints additional information to the debug window as displayable text.
+        Screen.Print($"P0: {Camera.P0}", (Screen.width / 2) + 20, Screen.height - 30, 0xffffff);
+        Screen.Print($"P1: {Camera.P1}", (Screen.width / 2) + 20, Screen.height - 60, 0xffffff);
+        Screen.Print($"P2: {Camera.P2}", (Screen.width / 2) + 20, Screen.height - 90, 0xffffff);
+        Screen.Print($"P3: ({Camera.P1.X}, {Camera.P2.Y}, {Camera.P0.Z})", (Screen.width / 2) + 20, Screen.height - 120, 0xffffff);
+        Screen.Print($"Pos: {Camera.Position}", (Screen.width / 2) + 20, Screen.height - 150, 0xffffff);
+
+        Screen.Line(Utilities.TranslateX(Screen, Camera.P1.X), Utilities.TranslateZ(Screen, Camera.P1.Z), 
+            Utilities.TranslateX(Screen, Camera.P2.X), Utilities.TranslateZ(Screen, Camera.P2.Z), 255 << 8);
 
         // Console.WriteLine($"1: {Sphere.Center.X}, 2: {Sphere.Center.Z}");
         // Console.WriteLine($"Answer: {TranslateX(-4f)} - {TranslateX(4f)} | {TranslateX(-16f)} - {TranslateX(16f)}");
