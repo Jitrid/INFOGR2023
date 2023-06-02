@@ -1,5 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Input;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -208,6 +209,7 @@ namespace INFOGR2023Template
 
         protected override void OnMouseMove(MouseMoveEventArgs mea)
         {
+            Console.WriteLine("test");
             if (app == null) return;
             if (State == CursorState.Grabbed)
             {

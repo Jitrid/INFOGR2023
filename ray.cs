@@ -1,9 +1,9 @@
-﻿using OpenTK.Mathematics;
+﻿using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
 /// <summary>
-/// Represents a single ray shot from a certain point into a direction.
+/// Represents a single ray shot from a certain point with a direction.
 /// </summary>
 public class Ray
 {

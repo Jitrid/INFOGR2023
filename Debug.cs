@@ -1,28 +1,18 @@
 ﻿using OpenTK.Mathematics;
-using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
 public class Debug
 {
     public Surface Screen;
+    public Camera Camera;
     public List<Primitive> Primitives;
 
-    private float scale;
-    private int offsetX, translate;
-
-    private int color;
-
-    public Debug(Surface screen, List<Primitive> primitives)
+    public Debug(Surface screen, Camera camera, List<Primitive> primitives)
     {
         Screen = screen;
+        Camera = camera;
         Primitives = primitives;
-
-        scale = (screen.width / 2) / 30f;
-        offsetX = screen.width / 2;
-        translate = (screen.width / 2) / 2;
-
-        color = Utilities.ColorToInt(new Vector3(1, 1, 0));
     }
 
     public void Render() => DrawPrimitives();
@@ -33,55 +23,53 @@ public class Debug
         {
             if (p is Sphere sphere)
             {
-                Vector2 center = new(sphere.Center.X, sphere.Center.Z);
-                float radius = sphere.Radius;
+                // Increment the denominator for smoother circles.
+                const float smoothness = MathHelper.TwoPi / 20000f;
 
-                const float step = MathHelper.TwoPi / 100f;
                 int x1 = -1, y1 = -1;
 
-                for (float t = 0; t < MathHelper.TwoPi; t += step)
+                for (float theta = 0; theta < MathHelper.TwoPi; theta += smoothness)
                 {
-                    float tempX = center.X + radius * (float)MathHelper.Cos(t);
-                    float tempY = center.Y + radius * (float)MathHelper.Sin(t);
+                    float tempX = (float)(sphere.Center.X + sphere.Radius * MathHelper.Cos(theta));
+                    float tempY = (float)(sphere.Center.Z + sphere.Radius * MathHelper.Sin(theta)); // / 2f
 
-                    // tempX /= 5f;
-                    // tempY /= 5f;
-                    
                     int x = Utilities.TranslateX(Screen, tempX);
-                    int y = Utilities.TranslateX(Screen, tempY) / 2;
+                    int y = Utilities.TranslateZ(Screen, tempY);
 
                     if (x1 > -1 && y1 > -1)
-                    {
-                        Screen.Line(x1, y1, x, y, 255);
-                        Console.WriteLine($"Center: {Utilities.TranslateX(Screen, center.X)}, {Utilities.TranslateZ(Screen, center.Y)}");
-                        // Console.WriteLine(x1 + ", " + y1 + ", " + x + ", " + y);
-                    }
+                        Screen.Line(x1, y1, x, y, sphere.Color);
 
                     x1 = x;
                     y1 = y;
                 }
-
-                // int x = (int)((sphere.Center.X + sphere.Radius) * scale + offsetX + translate);
-                // // Console.WriteLine($"Cx: {Sphere.Center.X}, Cz: {Sphere.Center.Z}, R: {Sphere.Radius}, S: {scale}, O: {offsetX}, T: {translate}");
-                // int y = (int)((-sphere.Center.Z) * scale + translate);
-
-                // for (float t = 0; t <= 2 * Math.PI + 1; t += (float)(2 * Math.PI / 100))
-                // {
-                //     int tempX = (int)((sphere.Center.X + Math.Cos(t) * sphere.Radius) * scale + offsetX + 2 * translate);
-                //     // Console.WriteLine(Utilities.TranslateX(Screen, Sphere.Center.X));
-                //     // Console.WriteLine(Utilities.TranslateX(Screen, (int)((Sphere.Center.X + Math.Cos(t) * Sphere.Radius))));
-                //     int tempY = (int)((-sphere.Center.Z + Math.Sin(t) * sphere.Radius) * scale + translate);
-                //     Screen.Line(x, y,
-                //         tempX, tempY, 255);
-                //     x = tempX;
-                //     y = tempY;
-                // }
             }
         }
+    }
 
-        // Screen.Line(Utilities.TranslateX(Screen, Sphere.Center.X) - 5,
-        //     Utilities.TranslateZ(Screen, Sphere.Center.Z) - 5,
-        //     Utilities.TranslateX(Screen, Sphere.Center.X) + 5, Utilities.TranslateZ(Screen, Sphere.Center.Z) + 5,
-        //     255 << 16);
+    private int _count;
+
+    public void DrawRays(Vector3 start, Vector3 end, Utilities.Ray ray)
+    {
+        // Primary rays
+        if (ray == Utilities.Ray.Primary)
+        {
+            _count++;
+            // if (_count % 50000 == 0)
+            // {
+                Screen.Line(Utilities.TranslateX(Screen, start.X), Utilities.TranslateZ(Screen, start.Z),
+                    Utilities.TranslateX(Screen, end.X), Utilities.TranslateZ(Screen, end.Z), Utilities.ColorToInt(new Vector3(1, 1, 0)));
+            // }
+        }
+
+        //if (c == 0)
+        //{
+        //    Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X),
+        //        Utilities.TranslateZ(Screen, Camera.Position.Z),
+        //        Utilities.TranslateX(Screen, (float)(x)), Utilities.TranslateZ(Screen, (float)y), 255 << 8);
+
+        //    // Console.WriteLine(x + ", " + y);
+        //}
+
+        //c++;
     }
 }
