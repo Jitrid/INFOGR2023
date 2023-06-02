@@ -1,4 +1,5 @@
-﻿using Vector3 = OpenTK.Mathematics.Vector3;
+﻿using System.Diagnostics;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
@@ -17,13 +18,14 @@ internal class Raytracer
     {
         Screen = screen;
         Scene = new Scene();
-        Debug = new Debug(screen, Scene.Primitives);
 
         Sphere = (Sphere)Scene.Primitives[1];
         Light = Scene.Lights[0];
 
         aspectRatio = Screen.height / (Screen.width / 2);
-        Camera = new Camera(aspectRatio, new Vector3(0f, 0f, 0f));
+        Camera = new Camera(new Vector3(0f, 0.25f, 0f), new Vector3(0, 0.5f, 7f));
+
+        Debug = new Debug(screen, Camera, Scene.Primitives);
     }
 
     public void Render()

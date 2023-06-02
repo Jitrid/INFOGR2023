@@ -37,7 +37,7 @@ public class Debug
                     int y = Utilities.TranslateZ(Screen, tempY);
 
                     if (x1 > -1 && y1 > -1)
-                        Screen.Line(x1, y1, x, y, sphere.Color);
+                        Screen.Line(x1, y1, x, y, Utilities.ColorToInt(sphere.Color));
 
                     x1 = x;
                     y1 = y;
