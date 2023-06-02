@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Vector3 = OpenTK.Mathematics.Vector3;
+﻿using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
@@ -9,7 +8,6 @@ internal class Raytracer
     private Debug Debug;
     private Scene Scene;
     public Camera Camera;
-    private int aspectRatio;
 
     private Sphere Sphere;
     private Light Light;
@@ -21,8 +19,7 @@ internal class Raytracer
 
         Sphere = (Sphere)Scene.Primitives[1];
         Light = Scene.Lights[0];
-
-        aspectRatio = Screen.height / (Screen.width / 2);
+        
         Camera = new Camera(new Vector3(0f, 0.25f, 0f), new Vector3(0, 0.5f, 7f));
 
         Debug = new Debug(screen, Camera, Scene.Primitives);
@@ -44,11 +41,12 @@ internal class Raytracer
                 double y = Camera.P0.Y - i / ((double)(Screen.height / 2) - Camera.P0.Y);
                 double x = Camera.P0.X + j / ((double)(Screen.width / 4) - Camera.P0.X); // pixel indices
 
-                Vector3 punty = Camera.P0 + (float)x * Camera.U + (float)y * Camera.V;
+                Vector3 punty = (Camera.P0 - Camera.Position) + (float)x * Camera.U + (float)y * Camera.V;
+                punty.Normalize();
 
                 // Create a ray from the camera position through the current pixel
                 Ray viewRay = Camera.GetRay(punty);
-                    Vector3 colorV = Intersection.TraceRay(viewRay, Scene, 100);
+                    Vector3 colorV = Intersection.TraceRay(viewRay, Scene, 5);
                     int color = ConvertToHexColor(colorV);
                 
                 
@@ -142,77 +140,6 @@ internal class Raytracer
                 //}
                 //}
             });
-        
-
-
-
-
-
-        //if (c == 0)
-        //{
-        //    Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X),
-        //        Utilities.TranslateZ(Screen, Camera.Position.Z),
-        //        Utilities.TranslateX(Screen, (float)(x)), Utilities.TranslateZ(Screen, (float)y), 255 << 8);
-
-        //    // Console.WriteLine(x + ", " + y);
-        //}
-
-        //c++;
-
-
-
-        //////plane
-        //if (Plane.HitRay(viewRay, out Vector3 intersectP))
-        //{
-        //    Vector3 lightDirection = Vector3.Normalize(Light.Location - intersectP);
-        //    Ray lightRay = new(intersectP, lightDirection);
-        //    if (!Sphere.HitRay(lightRay, out Vector3 lightIntersect))
-        //    {
-        //        int color = ItTakesAllColoursToMakeARainbow(0xFFFFFF, Vector3.Normalize(lightRay.Direction), viewRay.Direction,
-        //            Plane.GetNormal(intersectP), 0x00FF00, .001f, 10, 0.051f);
-        //        Screen.pixels[i * Screen.width + j] = color;
-        //    }
-        //    else
-        //    {
-        //        Screen.pixels[i * Screen.width + j] = 0;
-        //    }
-        //}
-
-        //if (Sphere.HitRay(viewRay, out Vector3 intersectionPoint))
-        //{
-        //    if (count == 0)
-        //    {
-        //        Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X), Utilities.TranslateZ(Screen, Camera.Position.Z),
-        //            Utilities.TranslateX(Screen, intersectionPoint.X), Utilities.TranslateZ(Screen, intersectionPoint.Z), 255);
-        //    }
-        //    count++;
-
-        //    // hap slik weg ofzo idk anymore
-        //    Vector3 normal = Sphere.GetNormal(intersectionPoint);
-        //    if (Sphere.IntersectsWithLight(intersectionPoint, Light.Location, out Vector3 lightDir))
-        //    {
-        //        // 1 roze teelbal, you are welcome
-        //        int color = ItTakesAllColoursToMakeARainbow(0xFF00FF, Vector3.Normalize(lightDir), viewRay.Direction,
-        //            normal, 0xFFFFFF, .001f, 10, 0.051f);
-        //        Screen.pixels[i * Screen.width + j] = color;
-        //    }
-        //}
-
-
-
-        // else
-        // {
-        //     if (Count % 100000 == 0)
-        //     {
-        //         Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X), Utilities.TranslateZ(Screen, Camera.Position.Z), 
-        //             Utilities.TranslateX(Screen, viewRay.Direction.X), 0, 255 << 16);
-        //     }
-        // }
-
-        // TODO: out of bounds als je te ver naar achteren gaat.
-        // Screen.pixels[
-        //         Utilities.TranslateZ(Screen, Camera.Position.Z) * Screen.width +
-        //         Utilities.TranslateX(Screen, Camera.Position.X)] = 255;
         });
 
 

@@ -217,11 +217,6 @@ namespace INFOGR2023Template
             }
         }
 
-        protected override void OnMouseWheel(MouseWheelEventArgs mea)
-        {
-            app?.CallZoom(mea);
-        }
-
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);

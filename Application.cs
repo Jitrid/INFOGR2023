@@ -23,6 +23,5 @@ class Application
 
     // The following three methods call their respective methods in regards to camera movement.
     public void CallMovement(KeyboardKeyEventArgs kea, float t) => Raytracer.Camera.CameraKeyboardInput(kea, t);
-    public void CallRotation(MouseMoveEventArgs mea) => Raytracer.Camera.RotationInput(mea, Screen);
-    public void CallZoom(MouseWheelEventArgs mea) => Raytracer.Camera.CameraZoom(mea);
+    public void CallRotation(MouseMoveEventArgs mea) => Raytracer.Camera.RotationInput(mea);
 }
