@@ -129,64 +129,40 @@ public class Camera
     {
         const float speed = 0.15f;
 
-        switch (kea)
+        switch (kea.Key)
         {
-            // case { Key: Keys.W }: // forwards
-            //     Position += Direction * speed * time;
-            //     UpdateVectors(AspectRatio);
-            //     break;
-            // case { Key: Keys.S }: // backwards
-            //     Position -= Direction * speed * time;
-            //     // UpdateVectors(AspectRatio);
-            //     break;
-            // case { Key: Keys.A }: // left
-            //     Position -= Right * speed * time;
-            //     // UpdateVectors(AspectRatio);
-            //     break;
-            // case { Key: Keys.D }: // right
-            //     Position += Right * speed * time;
-            //     // UpdateVectors(AspectRatio);
-            //     break;
-            // case { Key: Keys.Space }: // up
-            //     Position += Up * speed * time;
-            //     // UpdateVectors(AspectRatio);
-            //     break;
-            // case { Key: Keys.LeftShift }: // down
-            //     Position -= Up * speed * time;
-            //     // UpdateVectors(AspectRatio);
-            //     break;
+            // forwards
+            case Keys.W or Keys.Up:
+                Position.Z += speed * time;
+                Direction.Z += speed * time;
+                break;
+            // backwards
+            case Keys.S or Keys.Down:
+                Position.Z -= speed * time;
+                Direction.Z -= speed * time;
+                break;
+            // left
+            case Keys.A or Keys.Left:
+                Position.X -= speed * time;
+                Direction.X -= speed * time;
+                break;
+            // right
+            case Keys.D or Keys.Right:
+                Position.X += speed * time;
+                Direction.X += speed * time;
+                break;
+            // up
+            case Keys.Space:
+                Position.Y += speed * time;
+                Direction.Y += speed * time;
+                break;
+            // down
+            case Keys.LeftShift:
+                Position.Y -= speed * time;
+                Direction.Y -= speed * time;
+                break;
         }
 
-        if (kea.Key is Keys.W or Keys.Up) // forwards
-        {
-            Position.Z += speed * time;
-            Direction.Z += speed * time;
-        }
-        if (kea.Key is Keys.S or Keys.Down) // backwards
-        {
-            Position.Z -= speed * time;
-            Direction.Z -= speed * time;
-        }
-        if (kea.Key is Keys.A or Keys.Left) // left
-        {
-            Position.X -= speed * time;
-            Direction.X -= speed * time;
-        }
-        if (kea.Key is Keys.D or Keys.Right) // right
-        {
-            Position.X += speed * time;
-            Direction.X += speed * time;
-        }
-        if (kea.Key is Keys.Space) // up
-        {
-            Position.Y += speed * time;
-            Direction.Y += speed * time;
-        }
-        if (kea.Key is Keys.LeftShift) // down
-        {
-            Position.Y -= speed * time;
-            Direction.Y -= speed * time;
-        }
         UpdateVectors(AspectRatio);
     }
 

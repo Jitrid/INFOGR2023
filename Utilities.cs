@@ -99,4 +99,43 @@ public class Utilities
 
         return (r << 16) | (g << 8) | b;
     }
+
+    public int ItTakesAllColoursToMakeARainbow(int lightColor, Vector3 lightDirection, Vector3 viewDirection,
+    Vector3 normal, int objectColor, float specularIntensity, float specularPower,
+    float distancelichtsterkteAfname)
+    {
+        float lightRed = ((lightColor >> 16) & 255) / 255f;
+        float lightGreen = ((lightColor >> 8) & 255) / 255f;
+        float lightBlue = (lightColor & 255) / 255f;
+
+        float objectRed = ((objectColor >> 16) & 255) / 255f;
+        float objectGreen = ((objectColor >> 8) & 255) / 255f;
+        float objectBlue = (objectColor & 255) / 255f;
+
+        if (Vector3.Dot(normal, lightDirection) < 0)
+            return 0x000000;
+
+        float diffuseCoefficient = Math.Max(0, Vector3.Dot(normal, lightDirection));
+
+        //reflection direction kut vectoren uit GL hebben geen .Reflect dus dan maar ombouwen... Kms
+        System.Numerics.Vector3 systemReflectionDirection =
+            System.Numerics.Vector3.Reflect(Utilities.VectorToSystem(-lightDirection), Utilities.VectorToSystem(normal));
+        Vector3 reflectionDirection = Utilities.VectorToGL(systemReflectionDirection);
+
+        float specularCoefficient =
+            (float)Math.Pow(Math.Max(0, Vector3.Dot(viewDirection, reflectionDirection)), specularPower) *
+            specularIntensity;
+
+        float lichtsterkteAfname = 1 / (distancelichtsterkteAfname * distancelichtsterkteAfname);
+
+        float shadedRed = lightRed * objectRed * (diffuseCoefficient + specularCoefficient) * lichtsterkteAfname;
+        float shadedGreen = lightGreen * objectGreen * (diffuseCoefficient + specularCoefficient) * lichtsterkteAfname;
+        float shadedBlue = lightBlue * objectBlue * (diffuseCoefficient + specularCoefficient) * lichtsterkteAfname;
+
+        int fixRed = (int)(shadedRed * 255f);
+        int fixGreen = (int)(shadedGreen * 255f);
+        int fixBlue = (int)(shadedBlue * 255f);
+
+        return (fixRed << 16) | (fixGreen << 8) | fixBlue;
+    }
 }
