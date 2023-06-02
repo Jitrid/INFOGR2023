@@ -48,7 +48,7 @@ internal class Raytracer
 
                 // Create a ray from the camera position through the current pixel
                 Ray viewRay = Camera.GetRay(punty);
-                    Vector3 colorV = Intersection.TraceRay(viewRay, Scene, 5);
+                    Vector3 colorV = Intersection.TraceRay(viewRay, Scene, 100);
                     int color = ConvertToHexColor(colorV);
                 
                 

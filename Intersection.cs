@@ -85,14 +85,16 @@ public class Intersection
                 return Vector3.Zero;
             }
         }
-        if (closestPrimitive.GetType() == typeof(Sphere))
+        
+        if (closestPrimitive.GetReflectionCoefficient() == 1)
         {
+            
             Vector3 surfaceNormal = closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 reflectionDirection = ReflectRay(ray.Direction, surfaceNormal); 
-            Ray reflectedRay = new Ray(closestIntersectionPoint, reflectionDirection);
+            Ray reflectedRay = new Ray(closestIntersectionPoint, Vector3.Normalize(reflectionDirection));
             if (maxbounce > 0)
             { 
-                color += closestPrimitive.GetColor() * TraceRay(reflectedRay, s, maxbounce - 1);
+                color += closestPrimitive.GetColor() * closestPrimitive.GetReflectionCoefficient() * TraceRay(reflectedRay, s, maxbounce - 1);
                 if (color.X > 1f) color.X = 1f;
                 if (color.Y > 1f) color.Y = 1f;
                 if (color.Z > 1f) color.Z = 1f;
