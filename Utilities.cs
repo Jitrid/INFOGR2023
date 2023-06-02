@@ -4,6 +4,13 @@ namespace INFOGR2023Template;
 
 public class Utilities
 {
+    public enum Ray
+    {
+        Primary,
+        Shadow,
+        Reflection
+    }
+
     /// <summary>
     /// The amount of steps to be used for the coordinate system.
     /// </summary>
@@ -97,10 +104,12 @@ public class Utilities
         int g = (int)(color.Y * 255);
         int b = (int)(color.Z * 255);
 
-        return (r << 16) | (g << 8) | b;
+        int c = (r << 16) | (g << 8) | b;
+
+        return c == 0 ? 0xffffff : c;
     }
 
-    public int ItTakesAllColoursToMakeARainbow(int lightColor, Vector3 lightDirection, Vector3 viewDirection,
+    public static int ItTakesAllColoursToMakeARainbow(int lightColor, Vector3 lightDirection, Vector3 viewDirection,
     Vector3 normal, int objectColor, float specularIntensity, float specularPower,
     float distancelichtsterkteAfname)
     {
