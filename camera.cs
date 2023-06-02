@@ -127,35 +127,67 @@ public class Camera
     /// <param name="time">The frame's "delta time" to determine performance and generalize the effect for all systems.</param>
     public void CameraKeyboardInput(KeyboardKeyEventArgs kea, float time)
     {
-        const float speed = 1.5f;
+        const float speed = 0.15f;
 
         switch (kea)
         {
-            case { Key: Keys.W }: // forwards
-                Position += Direction * speed * time;
-                UpdateVectors(AspectRatio);
-                break;
-            case { Key: Keys.S }: // backwards
-                Position -= Direction * speed * time;
-                UpdateVectors(AspectRatio);
-                break;
-            case { Key: Keys.A }: // left
-                Position -= Right * speed * time;
-                UpdateVectors(AspectRatio);
-                break;
-            case { Key: Keys.D }: // right
-                Position += Right * speed * time;
-                UpdateVectors(AspectRatio);
-                break;
-            case { Key: Keys.Space }: // up
-                Position += Up * speed * time;
-                UpdateVectors(AspectRatio);
-                break;
-            case { Key: Keys.LeftShift }: // down
-                Position -= Up * speed * time;
-                UpdateVectors(AspectRatio);
-                break;
+            // case { Key: Keys.W }: // forwards
+            //     Position += Direction * speed * time;
+            //     UpdateVectors(AspectRatio);
+            //     break;
+            // case { Key: Keys.S }: // backwards
+            //     Position -= Direction * speed * time;
+            //     // UpdateVectors(AspectRatio);
+            //     break;
+            // case { Key: Keys.A }: // left
+            //     Position -= Right * speed * time;
+            //     // UpdateVectors(AspectRatio);
+            //     break;
+            // case { Key: Keys.D }: // right
+            //     Position += Right * speed * time;
+            //     // UpdateVectors(AspectRatio);
+            //     break;
+            // case { Key: Keys.Space }: // up
+            //     Position += Up * speed * time;
+            //     // UpdateVectors(AspectRatio);
+            //     break;
+            // case { Key: Keys.LeftShift }: // down
+            //     Position -= Up * speed * time;
+            //     // UpdateVectors(AspectRatio);
+            //     break;
         }
+
+        if (kea.Key is Keys.W or Keys.Up) // forwards
+        {
+            Position.Z += speed * time;
+            Direction.Z += speed * time;
+        }
+        if (kea.Key is Keys.S or Keys.Down) // backwards
+        {
+            Position.Z -= speed * time;
+            Direction.Z -= speed * time;
+        }
+        if (kea.Key is Keys.A or Keys.Left) // left
+        {
+            Position.X -= speed * time;
+            Direction.X -= speed * time;
+        }
+        if (kea.Key is Keys.D or Keys.Right) // right
+        {
+            Position.X += speed * time;
+            Direction.X += speed * time;
+        }
+        if (kea.Key is Keys.Space) // up
+        {
+            Position.Y += speed * time;
+            Direction.Y += speed * time;
+        }
+        if (kea.Key is Keys.LeftShift) // down
+        {
+            Position.Y -= speed * time;
+            Direction.Y -= speed * time;
+        }
+        UpdateVectors(AspectRatio);
     }
 
     /// <summary>

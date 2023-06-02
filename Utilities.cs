@@ -7,7 +7,7 @@ public class Utilities
     /// <summary>
     /// The amount of steps to be used for the coordinate system.
     /// </summary>
-    public const int Steps = 16;
+    public const int Steps = 32;
 
     /// <summary>
     /// Translates an x-axis coordinate into an appropriate screen width.
@@ -86,6 +86,11 @@ public class Utilities
             return new Vector3(0f, 0f, 1f); // Blue
         }
     }
+    /// <summary>
+    /// Converts a vector (0-1) to RGB values in order to display colors.
+    /// </summary>
+    /// <param name="color"></param>
+    /// <returns></returns>
     public static int ColorToInt(Vector3 color)
     {
         int r = (int)(color.X * 255);

@@ -8,6 +8,8 @@ class Application
 {
     // member variables
     public Surface Screen;
+    public Debug Debug;
+
     public Camera Camera;
     public Plane Plane;
     public Sphere Sphere;
@@ -50,6 +52,8 @@ class Application
             Sphere,
             Sphere2
         };
+
+        Debug = new Debug(Screen, objects);
     }
 
     /// <summary>
@@ -58,6 +62,7 @@ class Application
     public void Tick()
     {
         Screen.Clear(0);
+        Debug.Render();
 
         int count = 0;
         int c = 0;
@@ -193,9 +198,9 @@ class Application
         // }
 
         // TODO: out of bounds als je te ver naar achteren gaat.
-        Screen.pixels[
-                Utilities.TranslateZ(Screen, Camera.Position.Z) * Screen.width +
-                Utilities.TranslateX(Screen, Camera.Position.X)] = 255;
+        // Screen.pixels[
+        //         Utilities.TranslateZ(Screen, Camera.Position.Z) * Screen.width +
+        //         Utilities.TranslateX(Screen, Camera.Position.X)] = 255;
         }
 
 
@@ -212,10 +217,14 @@ class Application
 
         // Console.WriteLine($"1: {Sphere.Center.X}, 2: {Sphere.Center.Z}");
         // Console.WriteLine($"Answer: {TranslateX(-4f)} - {TranslateX(4f)} | {TranslateX(-16f)} - {TranslateX(16f)}");
-        Screen.Line(Utilities.TranslateX(Screen, Sphere.Center.X) - 5,
-            Utilities.TranslateZ(Screen, Sphere.Center.Z) - 5,
-            Utilities.TranslateX(Screen, Sphere.Center.X) + 5, Utilities.TranslateZ(Screen, Sphere.Center.Z) + 5,
-            255 << 16);
+        // Screen.Line(Utilities.TranslateX(Screen, Sphere.Center.X) - 5,
+        //     Utilities.TranslateZ(Screen, Sphere.Center.Z) - 5,
+        //     Utilities.TranslateX(Screen, Sphere.Center.X) + 5, Utilities.TranslateZ(Screen, Sphere.Center.Z) + 5,
+        //     255 << 16);
+
+        Screen.pixels[
+            Utilities.TranslateZ(Screen, Sphere.Center.Z) * Screen.width +
+            Utilities.TranslateX(Screen, Sphere.Center.X)] = 255;
 
     }
 
