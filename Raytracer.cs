@@ -46,53 +46,99 @@ internal class Raytracer
 
                 // Create a ray from the camera position through the current pixel
                 Ray viewRay = Camera.GetRay(punty);
+                    Vector3 colorV = Intersection.TraceRay(viewRay, Scene, 5);
+                    int color = ConvertToHexColor(colorV);
+                
+                
+                    Screen.pixels[i * Screen.width + j] = color;
+                
 
-                foreach (Primitive p in Scene.Primitives)
-                {
-                    if (p.HitRay(viewRay, out Vector3 intersect))
-                    {
-                        Vector3 lightDirection = Vector3.Normalize(Light.Location - intersect);
-                        Ray lightRay = new Ray(intersect, lightDirection);
 
-                        if (!Intersection.Shadowed(intersect, Light.Location, out Vector3 lightD, Scene.Primitives, p))
-                        {
-                            Vector3 normal = p.GetNormal(intersect);
-                            float diffuseCoefficient = Math.Max(0, Vector3.Dot(normal, lightDirection));
 
-                            // Apply diffuse shading
-                            Vector3 diffuseColor = new(
-                                (int)((p.GetColor() >> 16) & 255),
-                                (int)((p.GetColor() >> 8) & 255),
-                                (int)(p.GetColor() & 255)
-                            );
 
-                            Vector3 shadedColor = diffuseColor * diffuseCoefficient;
 
-                            // Add specular reflection
-                            Vector3 reflectionDirection = Intersection.ReflectRay(viewRay.Direction, normal);
-                            Ray reflectedRay = new Ray(intersect, reflectionDirection);
-                            if (Intersection.TraceRay(reflectedRay, Scene.Primitives, Light, 50 - 1, out int reflectedColor))
-                            {
-                                // Apply reflection coefficient or material properties here
-                                shadedColor += new Vector3(
-                                    (int)((reflectedColor >> 16) & 255),
-                                    (int)((reflectedColor >> 8) & 255),
-                                    (int)(reflectedColor & 255)
-                                );
-                            }
 
-                            // Convert the shaded color to integer representation
-                            int color = ((int)shadedColor.X << 16) | ((int)shadedColor.Y << 8) | (int)shadedColor.Z;
 
-                            Screen.pixels[i * Screen.width + j] = color;
-                        }
-                        else
-                        {
-                            // Handle shadows
-                            Screen.pixels[i * Screen.width + j] = 0x000000;
-                        }
-                    }
-                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+                //foreach (Primitive p in Scene.Primitives)
+                //{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                //if (p.HitRay(viewRay, out Vector3 intersect))
+                //{
+                //    Vector3 lightDirection = Vector3.Normalize(Light.Location - intersect);
+                //    Ray lightRay = new Ray(intersect, lightDirection);
+
+                //    if (!Intersection.Shadowed(intersect, Light.Location, out Vector3 lightD, Scene.Primitives, p))
+                //    {
+                //        Vector3 normal = p.GetNormal(intersect);
+                //        float diffuseCoefficient = Math.Max(0, Vector3.Dot(normal, lightDirection));
+
+                //        // Apply diffuse shading
+                //        Vector3 diffuseColor = p.GetColor();
+
+
+                //        Vector3 shadedColor = diffuseColor * diffuseCoefficient;
+
+                //        // Add specular reflection
+                //        Vector3 reflectionDirection = Intersection.ReflectRay(viewRay.Direction, normal);
+                //        Ray reflectedRay = new Ray(intersect, reflectionDirection);
+                //        if (Intersection.TraceRay(reflectedRay, Scene.Primitives, Light, 50 - 1, out Vector3 reflectedColor))
+                //        {
+                //            // Apply reflection coefficient or material properties here
+                //            shadedColor += reflectedColor;
+                //        }
+
+                //        // Convert the shaded color to integer representation
+                //        int color = ((int)shadedColor.X << 16 & 255) | ((int)shadedColor.Y << 8 & 255) | (int)shadedColor.Z & 255;
+
+                //        Screen.pixels[i * Screen.width + j] = color;
+                //    }
+                //    else
+                //    {
+                //        //// Handle shadows
+                //        //Screen.pixels[i * Screen.width + j] = 0x000000;
+                //    }
+                //}
+                //}
             });
         
 
@@ -192,4 +238,15 @@ internal class Raytracer
 
         Screen.Line(1065, 956, 1124, 1008, 255);
     }
+
+    //NAAR UTILS
+    public static int ConvertToHexColor(Vector3 color)
+    {
+        int red = (int)(color.X * 255);
+        int green = (int)(color.Y * 255);
+        int blue = (int)(color.Z * 255);
+
+        return (red << 16) | (green << 8) | blue;
+    }
+
 }

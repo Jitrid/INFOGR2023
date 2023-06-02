@@ -29,7 +29,7 @@ public abstract class Primitive
     /// <returns>The normalized vector.</returns>
     public abstract Vector3 GetNormal(Vector3 point);
 
-    public abstract int GetColor();
+    public abstract Vector3 GetColor();
     public abstract float GetReflectionCoefficient();
 
 

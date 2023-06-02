@@ -1,4 +1,5 @@
 ﻿using System.Reflection.Metadata;
+using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
 
 namespace INFOGR2023Template;
@@ -44,7 +45,7 @@ public class Intersection
         {
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
-                float distance = Vector3.Distance(ray.Origin, intersect);
+                float distance = Vector3.Distance(ray.Origin, intersect) - 0.001f;
 
                 if (distance < closestDistance)
                 {
@@ -58,45 +59,129 @@ public class Intersection
         return closestPrimitive != null;
     }
 
-    public static bool TraceRay(Ray ray, List<Primitive> objects, Light light, int maxDepth, out int color)
+    public static Vector3 TraceRay(Ray ray, Scene s, int maxbounce)
     {
-        color = 0;
+        Vector3 color = Vector3.Zero;
+        FindClosestIntersection(ray, s.Primitives, out Vector3 closestIntersectionPoint, out Primitive closestPrimitive);
 
-        // Check if maximum recursion depth is reached
-        if (maxDepth <= 0)
-            return false;
-
-        if (FindClosestIntersection(ray, objects, out Vector3 intersectionPoint, out Primitive closestPrimitive))
+        if (closestPrimitive == null) return Vector3.UnitZ;
+        if (closestPrimitive.GetType() == typeof(Plane))
         {
-            Vector3 surfaceNormal = closestPrimitive.GetNormal(intersectionPoint);
-            Vector3 reflectionDirection = ReflectRay(ray.Direction, surfaceNormal);
-            Ray reflectedRay = new Ray(intersectionPoint, reflectionDirection);
+            Vector3 lightDirection = Vector3.Normalize(s.Lights[0].Location - closestIntersectionPoint);
+            Vector3 normal = closestPrimitive.GetNormal(closestIntersectionPoint);
+            Vector3 viewDirection = Vector3.Normalize(ray.Direction);
 
-            // Check if the point is shadowed by other objects
-            if (Intersection.Shadowed(intersectionPoint, light.Location, out _, objects, closestPrimitive))
+            if (!Shadowed(closestIntersectionPoint, s.Lights[0].Location, out lightDirection, s.Primitives,
+                    closestPrimitive))
             {
-                // Apply shadow color or shading here
-                color = 0;
-                return true;
-            }
 
-            // Recursive call to trace the reflected ray
-            if (TraceRay(reflectedRay, objects, light, maxDepth - 1, out int reflectedColor))
+                color = Utilities.ShadeColor(new Vector3(1, 1, 1), lightDirection, viewDirection, normal,
+                    closestPrimitive.GetColor(), 0.25f, (float).1, 1f);
+            
+                return color;
+            }
+            else
             {
-                // Apply reflection coefficient or material properties here
-                float reflectionCoefficient = closestPrimitive.GetReflectionCoefficient();
-                color += (int)(reflectionCoefficient * reflectedColor);
+                return Vector3.Zero;
             }
-
-            // Add other shading calculations here (e.g., diffuse, specular, etc.)
-
-            // Add the final color contribution of the closest object
-            color += closestPrimitive.GetColor();
-
-            return true;
         }
+        if (closestPrimitive.GetType() == typeof(Sphere))
+        {
+            Vector3 surfaceNormal = closestPrimitive.GetNormal(closestIntersectionPoint);
+            Vector3 reflectionDirection = ReflectRay(ray.Direction, surfaceNormal); 
+            Ray reflectedRay = new Ray(closestIntersectionPoint, reflectionDirection);
+            if (maxbounce > 0)
+            { 
+                color += closestPrimitive.GetColor() * TraceRay(reflectedRay, s, maxbounce - 1);
+                if (color.X > 1f) color.X = 1f;
+                if (color.Y > 1f) color.Y = 1f;
+                if (color.Z > 1f) color.Z = 1f;
+            }
+           
+            
+            
+        }
+        return color;
+        //else
+        //{
+        //    Vector3 lightDirection = Vector3.Normalize(s.Lights[0].Location - closestIntersectionPoint);
+        //    Vector3 normal = closestPrimitive.GetNormal(closestIntersectionPoint);
+        //    Vector3 viewDirection = Vector3.Normalize(ray.Direction);
 
-        return false;
+        //    if (!Shadowed(closestIntersectionPoint, s.Lights[0].Location, out lightDirection, s.Primitives,
+        //            closestPrimitive))
+        //    {
+
+        //        color = Utilities.ShadeColor(new Vector3(1, 1, 1), lightDirection, viewDirection, normal,
+        //            closestPrimitive.GetColor(), 0.25f, (float).1, 1f);
+        //        return color;
+        //    }
+        //    else
+        //    {
+        //        return Vector3.Zero;
+        //    }
+        //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //color = Vector3.Zero;
+
+        //// Check if maximum recursion depth is reached
+        //if (maxDepth <= 0)
+        //    return false;
+
+        //if (FindClosestIntersection(ray, objects, out Vector3 intersectionPoint, out Primitive closestPrimitive))
+        //{
+        //    Vector3 surfaceNormal = closestPrimitive.GetNormal(intersectionPoint);
+        //    Vector3 reflectionDirection = ReflectRay(ray.Direction, surfaceNormal);
+        //    Ray reflectedRay = new Ray(intersectionPoint, reflectionDirection);
+
+        //    // Check if the point is shadowed by other objects
+        //    //if (Intersection.Shadowed(intersectionPoint, light.Location, out _, objects, closestPrimitive))
+        //    //{
+        //    //    // Apply shadow color or shading here
+        //    //    color = Vector3.Zero;
+        //    //    return true;
+        //    //}
+        //    Vector3 shadedColor = closestPrimitive.GetColor();
+        //    // Recursive call to trace the reflected ray
+        //    if (Intersection.TraceRay(reflectedRay, objects, light, 50 - 1, out Vector3 reflectedColor))
+        //    {
+
+        //        float reflectionCoefficient = closestPrimitive.GetReflectionCoefficient();
+        //        shadedColor += reflectionCoefficient * reflectedColor;
+        //        color += closestPrimitive.GetColor() * shadedColor;
+        //    }
+
+
+        //    // Add other shading calculations here (e.g., diffuse, specular, etc.)
+
+        //    // Add the final color contribution of the closest object
+
+
+        //    return true;
+        //}
+
+        //return false;
     }
 
 

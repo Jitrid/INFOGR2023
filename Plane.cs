@@ -7,14 +7,14 @@ public class Plane : Primitive
     public Vector3 Normal { get; }
     public float S { get; } //distance to origin
 
-    public int Color;
+    public Vector3 Color;
 
     public Vector3 DiffuseColor { get; set; }
     public Vector3 SpecularColor { get; set; }
     public float SpecularPower { get; set; }
     public float Reflectivity { get; set; }
 
-    public Plane(Vector3 normal, Vector3 s, int color, Vector3 diffusecolor, Vector3 specularcolor, float specularpower, float reflectivity)
+    public Plane(Vector3 normal, Vector3 s, Vector3 color, Vector3 diffusecolor, Vector3 specularcolor, float specularpower, float reflectivity)
     {
         Normal = normal.Normalized();
         S = s.Length;
@@ -75,7 +75,7 @@ public class Plane : Primitive
 
   
 
-    public override int GetColor()
+    public override Vector3 GetColor()
     {
         return Color;
     }

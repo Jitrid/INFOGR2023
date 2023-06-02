@@ -7,14 +7,14 @@ public class Sphere : Primitive
     public Vector3 Center { get; }
     public float Radius { get; }
 
-    public int Color { get; }
+    public Vector3 Color { get; }
 
     public Vector3 DiffuseColor { get; set; }
     public Vector3 SpecularColor { get; set; }
     public float SpecularPower { get; set; }
     public float Reflectivity { get; set; }
 
-    public Sphere(Vector3 center, float radius, int color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectivity)
+    public Sphere(Vector3 center, float radius, Vector3 color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectivity)
     {
         Center = center;
         Radius = radius;
@@ -88,7 +88,7 @@ public class Sphere : Primitive
 
 
 
-    public override int GetColor()
+    public override Vector3 GetColor()
     {
         return Color;
     }
