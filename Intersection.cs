@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata;
-using OpenTK.Graphics.ES30;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 
 namespace INFOGR2023Template;
 
@@ -35,7 +33,7 @@ public class Intersection
         return false;
     }
 
-    public static bool FindClosestIntersection(Ray ray, List<Primitive> objects, out Vector3 intersectionPoint, out Primitive closestPrimitive)
+    public static bool FindClosestIntersection(Debug debug, Camera camera, Ray ray, List<Primitive> objects, out Vector3 intersectionPoint, out Primitive closestPrimitive, int i)
     {
         intersectionPoint = Vector3.Zero;
         closestPrimitive = null;
@@ -45,6 +43,11 @@ public class Intersection
         {
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
+                if (primitive.GetType() == typeof(Sphere))
+                {
+                    debug.DrawRays(camera.Position, intersect, Utilities.Ray.Primary, i);
+                }
+
                 float distance = Vector3.Distance(ray.Origin, intersect) - 0.001f;
 
                 if (distance < closestDistance)
@@ -59,10 +62,10 @@ public class Intersection
         return closestPrimitive != null;
     }
 
-    public static Vector3 TraceRay(Ray ray, Scene s, int maxbounce)
+    public static Vector3 TraceRay(Debug debug, Camera camera, Ray ray, Scene s, int maxbounce, int i)
     {
         Vector3 color = Vector3.Zero;
-        FindClosestIntersection(ray, s.Primitives, out Vector3 closestIntersectionPoint, out Primitive closestPrimitive);
+        FindClosestIntersection(debug, camera, ray, s.Primitives, out Vector3 closestIntersectionPoint, out Primitive closestPrimitive, i);
 
         if (closestPrimitive == null) return Vector3.UnitZ;
         if (closestPrimitive.GetType() == typeof(Plane))
@@ -94,7 +97,7 @@ public class Intersection
             Ray reflectedRay = new Ray(closestIntersectionPoint, Vector3.Normalize(reflectionDirection));
             if (maxbounce > 0)
             { 
-                color += closestPrimitive.GetColor() * closestPrimitive.GetReflectionCoefficient() * TraceRay(reflectedRay, s, maxbounce - 1);
+                color += closestPrimitive.GetColor() * closestPrimitive.GetReflectionCoefficient() * TraceRay(debug, camera, reflectedRay, s, maxbounce - 1, i);
                 if (color.X > 1f) color.X = 1f;
                 if (color.Y > 1f) color.Y = 1f;
                 if (color.Z > 1f) color.Z = 1f;

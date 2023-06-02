@@ -48,17 +48,17 @@ public class Debug
 
     private int _count;
 
-    public void DrawRays(Vector3 start, Vector3 end, Utilities.Ray ray)
+    public void DrawRays(Vector3 start, Vector3 end, Utilities.Ray ray, int i)
     {
         // Primary rays
         if (ray == Utilities.Ray.Primary)
         {
             _count++;
-            // if (_count % 50000 == 0)
-            // {
-                Screen.Line(Utilities.TranslateX(Screen, start.X), Utilities.TranslateZ(Screen, start.Z),
-                    Utilities.TranslateX(Screen, end.X), Utilities.TranslateZ(Screen, end.Z), Utilities.ColorToInt(new Vector3(1, 1, 0)));
-            // }
+            // Console.WriteLine(i + " - " + Screen.height / 2);
+            if (i == Screen.height / 2)
+                if (_count % 50 == 0)
+                    Screen.Line(Utilities.TranslateX(Screen, start.X), Utilities.TranslateZ(Screen, start.Z),
+                        Utilities.TranslateX(Screen, end.X), Utilities.TranslateZ(Screen, end.Z), Utilities.ColorToInt(new Vector3(1, 1, 0)));
         }
 
         //if (c == 0)
