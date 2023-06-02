@@ -104,16 +104,16 @@ public class Camera
     public void UpdateVectors()
     {
         Forward = Vector3.Normalize(Direction - Position); // T - E
-        float screenDistance = (float)(2 * Math.Tan(FOV / 2));
+        ScreenDistance = (float)(2 * Math.Tan(FOV / 2));
 
         ImagePlaneCenter = Position + Forward;
 
-        Vector3 right = Vector3.Normalize(Vector3.Cross(new Vector3(0, 1, 0), Forward));
-        Vector3 up = Vector3.Cross(Forward, right);
+        Right = Vector3.Normalize(Vector3.Cross(new Vector3(0, 1, 0), Forward));
+        Up = Vector3.Cross(Forward, Right);
 
-        P0 = ImagePlaneCenter - (screenDistance / 2) * right + (screenDistance / 2) * up;
-        P1 = P0 + screenDistance * right;
-        P2 = P0 - screenDistance * up;
+        P0 = ImagePlaneCenter - (ScreenDistance / 2) * Right + (ScreenDistance / 2) * Up;
+        P1 = P0 + ScreenDistance * Right;
+        P2 = P0 - ScreenDistance * Up;
 
         U = P1 - P0;
         V = P2 - P0;
@@ -171,10 +171,11 @@ public class Camera
     /// <summary>
     /// Rotates the camera accordingly based on mouse movement.
     /// </summary>
-    public void RotationInput(MouseMoveEventArgs mea, Surface screen)
+    public void RotationInput(MouseMoveEventArgs mea)
     {
+        Console.Write(mea.X + ", " + mea.DeltaX);
         Yaw += mea.DeltaX * Sensitivity;
-        Pitch -= mea.DeltaY * Sensitivity;
+        Pitch += mea.DeltaY * Sensitivity;
         
         switch (Pitch)
         {
@@ -199,16 +200,6 @@ public class Camera
         Up = Vector3.Transform(Up, yRotation);
         Right = Vector3.Transform(Right, yRotation);
         
-        UpdateVectors();
-    }
-
-    /// <summary>
-    /// Adjusts the camera's FOV to create a "zoom" effect.
-    /// </summary>
-    public void CameraZoom(MouseWheelEventArgs mea)
-    {
-        FOV -= mea.OffsetY;
-
         UpdateVectors();
     }
 }
