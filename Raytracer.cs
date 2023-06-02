@@ -33,10 +33,10 @@ internal class Raytracer
 
         int count = 0;
         int c = 0;
-
-        for (int i = 0; i < Screen.height; i++) // y
+       // int i;
+        Parallel.For(0, Screen.height, i => // y
         {
-            for (int j = 0; j < Screen.width / 2; j++) // x
+            Parallel.For (0, Screen.width/2,  j =>  // x
             {
                 Screen.pixels[i * Screen.width + j] = 0x304080;
                 double y = Camera.P0.Y - i / ((double)(Screen.height / 2) - Camera.P0.Y);
@@ -93,7 +93,7 @@ internal class Raytracer
                         }
                     }
                 }
-            }
+            });
         
 
 
@@ -165,7 +165,7 @@ internal class Raytracer
         // Screen.pixels[
         //         Utilities.TranslateZ(Screen, Camera.Position.Z) * Screen.width +
         //         Utilities.TranslateX(Screen, Camera.Position.X)] = 255;
-        }
+        });
 
 
         // Prints additional information to the debug window as displayable text.
