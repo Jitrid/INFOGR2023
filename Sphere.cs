@@ -7,10 +7,22 @@ public class Sphere : Primitive
     public Vector3 Center { get; }
     public float Radius { get; }
 
-    public Sphere(Vector3 center, float radius)
+    public int Color { get; }
+
+    public Vector3 DiffuseColor { get; set; }
+    public Vector3 SpecularColor { get; set; }
+    public float SpecularPower { get; set; }
+    public float Reflectivity { get; set; }
+
+    public Sphere(Vector3 center, float radius, int color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectivity)
     {
         Center = center;
         Radius = radius;
+        Color = color;
+        DiffuseColor = diffcolor;
+        SpecularColor = speccolor;
+        SpecularPower = specularPower;
+        Reflectivity = reflectivity;
     }
 
     public override bool HitRay(Ray ray, out Vector3 intersect)
@@ -74,4 +86,16 @@ public class Sphere : Primitive
         return true;
     }
 
+
+
+    public override int GetColor()
+    {
+        return Color;
+    }
+    public override float GetReflectionCoefficient()
+    {
+        // Return the reflection coefficient for the sphere
+        // Adjust this value as desired (0 for no reflection, 1 for full reflection)
+        return Reflectivity; // Example reflection coefficient
+    }
 }

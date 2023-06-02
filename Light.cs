@@ -5,7 +5,7 @@ namespace INFOGR2023Template;
 /// <summary>
 /// Represents a light source in the scene that omits light at a certain intensity.
 /// </summary>
-internal class Light
+public class Light
 {
     /// <summary>
     /// The location of the light source.

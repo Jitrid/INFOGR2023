@@ -7,6 +7,12 @@ namespace INFOGR2023Template;
 /// </summary>
 public abstract class Primitive
 {
+    public Vector3 DiffuseColor { get; set; }
+    public Vector3 SpecularColor { get; set; }
+    public float SpecularPower { get; set; }
+
+    public float Reflectivity { get; set; }
+
     /// <summary>
     /// Indicates whether a ray has intersected with the primitive.
     /// </summary>
@@ -15,12 +21,17 @@ public abstract class Primitive
     /// <returns>True if there is an intersection, false otherwise.</returns>
     public abstract bool HitRay(Ray ray, out Vector3 intersect);
 
+
     /// <summary>
     /// Determines the normal vector of a given point.
     /// </summary>
     /// <param name="point">The point that should be normalized.</param>
     /// <returns>The normalized vector.</returns>
     public abstract Vector3 GetNormal(Vector3 point);
+
+    public abstract int GetColor();
+    public abstract float GetReflectionCoefficient();
+
 
     /// <summary>
     /// Determines whether a light source intersects with the primitive.
@@ -32,3 +43,5 @@ public abstract class Primitive
     /// <returns>True if there is an intersection, false otherwise.</returns>
     public abstract bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction);
 }
+
+   
