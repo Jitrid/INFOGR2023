@@ -4,22 +4,26 @@ namespace INFOGR2023Template;
 
 public class Debug
 {
-    public Surface Screen;
-    public Camera Camera;
-    public List<Primitive> Primitives;
+    // Used to access certain methods or fields from the respective classes.
+    private readonly Surface _screen;
+    private readonly Scene _scene;
 
-    public Debug(Surface screen, Camera camera, List<Primitive> primitives)
+    // Counters to keep track of the amount of rays that have been drawn.
+    private int _count;  // primary rays
+    private int _count1; // shadow rays
+    private int _count2; // reflection rays
+
+    public Debug(Surface screen, Scene scene)
     {
-        Screen = screen;
-        Camera = camera;
-        Primitives = primitives;
+        _screen = screen;
+        _scene = scene;
     }
 
     public void Render() => DrawPrimitives();
 
     private void DrawPrimitives()
     {
-        foreach (Primitive p in Primitives)
+        foreach (Primitive p in _scene.Primitives)
         {
             if (p is Sphere sphere)
             {
@@ -33,11 +37,11 @@ public class Debug
                     float tempX = (float)(sphere.Center.X + sphere.Radius * MathHelper.Cos(theta));
                     float tempY = (float)(sphere.Center.Z + sphere.Radius * MathHelper.Sin(theta)); // / 2f
 
-                    int x = Utilities.TranslateX(Screen, tempX);
-                    int y = Utilities.TranslateZ(Screen, tempY);
+                    int x = Utilities.TranslateX(_screen, tempX);
+                    int y = Utilities.TranslateZ(_screen, tempY);
 
                     if (x1 > -1 && y1 > -1)
-                        Screen.Line(x1, y1, x, y, Utilities.ColorToInt(sphere.Color));
+                        _screen.Line(x1, y1, x, y, Utilities.ColorToInt(sphere.Color));
 
                     x1 = x;
                     y1 = y;
@@ -46,30 +50,47 @@ public class Debug
         }
     }
 
-    private int _count;
-
     public void DrawRays(Vector3 start, Vector3 end, Utilities.Ray ray, int i)
     {
-        // Primary rays
-        if (ray == Utilities.Ray.Primary)
+        // Every <max>th amount of rays will be printed onto the debug window.
+        int max = (ray switch
         {
-            _count++;
-            // Console.WriteLine(i + " - " + Screen.height / 2);
-            if (i == Screen.height / 2)
-                if (_count % 50 == 0)
-                    Screen.Line(Utilities.TranslateX(Screen, start.X), Utilities.TranslateZ(Screen, start.Z),
-                        Utilities.TranslateX(Screen, end.X), Utilities.TranslateZ(Screen, end.Z), Utilities.ColorToInt(new Vector3(1, 1, 0)));
+            Utilities.Ray.Primary => 100,
+            Utilities.Ray.Shadow => 200,
+            _ => 500
+        });
+
+        // Determine which color to use for the ray.
+        int color = (ray switch
+        {
+            Utilities.Ray.Primary => Utilities.ColorToInt(new Vector3(1, 1, 0)), // yellow
+            Utilities.Ray.Shadow => 0xbbbbbb, // (light) gray
+            _ => 255 // dark blue
+        });
+
+        // Determine which count to increment.
+        switch (ray)
+        {
+            case Utilities.Ray.Primary:
+                _count++;
+                break;
+            case Utilities.Ray.Shadow:
+                _count1++;
+                break;
+            default:
+                _count2++;
+                break;
         }
 
-        //if (c == 0)
-        //{
-        //    Screen.Line(Utilities.TranslateX(Screen, Camera.Position.X),
-        //        Utilities.TranslateZ(Screen, Camera.Position.Z),
-        //        Utilities.TranslateX(Screen, (float)(x)), Utilities.TranslateZ(Screen, (float)y), 255 << 8);
-
-        //    // Console.WriteLine(x + ", " + y);
-        //}
-
-        //c++;
+        // Actually (attempt to) draw the ray on the debug window with the appropriate color.
+        // if (i != _screen.height / 2) return;
+        if (ray switch
+            {
+                Utilities.Ray.Primary => _count == 1,
+                Utilities.Ray.Shadow => _count1 > 1,
+                _ => _count2 == 1
+            })
+            _screen.Line(Utilities.TranslateX(_screen, start.X), Utilities.TranslateZ(_screen, start.Z),
+                Utilities.TranslateX(_screen, end.X), Utilities.TranslateZ(_screen, end.Z), color);
     }
 }

@@ -93,6 +93,7 @@ public class Utilities
             return new Vector3(0f, 0f, 1f); // Blue
         }
     }
+
     /// <summary>
     /// Converts a vector (0-1) to RGB values in order to display colors.
     /// </summary>
@@ -104,31 +105,41 @@ public class Utilities
         int g = (int)(color.Y * 255);
         int b = (int)(color.Z * 255);
 
-        int c = (r << 16) | (g << 8) | b;
-
-        return c == 0 ? 0xffffff : c;
+        return (r << 16) | (g << 8) | b;
     }
 
-    public static Vector3 ShadeColor(Vector3 lightColor, Vector3 lightDirection, Vector3 viewDirection,
-        Vector3 normal, Vector3 objectColor, float specularIntensity, float specularPower,
-        float distancelichtsterkteAfname)
+    public static Vector3 ShadeColor(Vector3 lightIntensity, Vector3 lightDirection, Vector3 viewDirection,
+        Vector3 normal, Vector3 diffuseColor, float r)
     {
-        float diffuseCoefficient = Math.Max(0, Vector3.Dot(normal, lightDirection));
+        Vector3 ambientLightning = diffuseColor * new Vector3(0.3f, 0.3f, 0.3f);
 
-        //reflection direction kut vectoren uit GL hebben geen .Reflect dus dan maar ombouwen... Kms
-        System.Numerics.Vector3 systemReflectionDirection =
-            System.Numerics.Vector3.Reflect(Utilities.VectorToSystem(-lightDirection), Utilities.VectorToSystem(normal));
-        Vector3 reflectionDirection = Utilities.VectorToGL(systemReflectionDirection);
+        Vector3 radiance = lightIntensity * (1 / (r * r));
 
-        float specularCoefficient =
-            (float)Math.Pow(Math.Max(0, Vector3.Dot(viewDirection, reflectionDirection)), specularPower) *
-            specularIntensity;
+        // Determine specifics for diffuse materials.
+        float dot = Vector3.Dot(normal, lightDirection);
+        if (dot < 0) // > 90dg
+            return ambientLightning;
 
-        float lichtsterkteAfname = 1 / (distancelichtsterkteAfname * distancelichtsterkteAfname);
+        float diffuseCoefficient = Math.Max(0, dot);
 
-        Vector3 shadedColor = lightColor * objectColor * (diffuseCoefficient + specularCoefficient) * lichtsterkteAfname;
+        // Determine specifics for specular (glossy) materials.
+        Vector3 reflectionDirection = lightDirection - 2 * (dot) * normal;
+
+        float specularPower = 10f;
+        float specularCoefficient = (float)Math.Pow(Math.Max(0, Vector3.Dot(viewDirection, reflectionDirection)), specularPower);
+        float k = 1f;
+        Vector3 specularColor = new(k, k, k);
+
+        // Combine both materials.
+        Vector3 shadedColor = radiance * ((diffuseCoefficient * diffuseColor) + (specularCoefficient * specularColor));
+
+        // Add ambient lighting.
+        shadedColor += ambientLightning;
+
+        if (shadedColor.X > 1) shadedColor.X = 1;
+        if (shadedColor.Y > 1) shadedColor.Y = 1;
+        if (shadedColor.Z > 1) shadedColor.Z = 1;
 
         return shadedColor;
     }
-
 }

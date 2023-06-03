@@ -1,6 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
@@ -14,16 +15,15 @@ public class Camera
     /// </summary>
     public Vector3 Position;
     /// <summary>
-    /// The direction in which the camera is pointed (z-axis).
+    /// The direction in which the camera is pointed.
     /// </summary>
     public Vector3 Direction;
-    public Vector3 Forward;
     /// <summary>
-    /// The "up" direction of the camera (y-axis).
+    /// The "up" direction of the camera.
     /// </summary>
     public Vector3 Up;
     /// <summary>
-    /// The "right" direction of the camera (x-axis).
+    /// The "right" direction of the camera.
     /// </summary>
     public Vector3 Right;
     /// <summary>
@@ -35,10 +35,6 @@ public class Camera
     /// The Field of View of the camera.
     /// </summary>
     public double FOV;
-    /// <summary>
-    /// The sensitivity for moving the camera.
-    /// </summary>
-    public float Sensitivity;
 
     /// <summary>
     /// The rotation around the side-to-side axis.
@@ -70,50 +66,38 @@ public class Camera
     public Vector3 U;
     public Vector3 V;
 
-    public Camera(Vector3 pos, Vector3 target)
+    public Camera(Vector3 pos)
     {
-        Position = pos; // Starting value: (0, 0, 0)
-        Direction = target; // (0, 0, 1)
-        // Up = Vector3.UnitY;        // (0, 1, 0)
-        // Right = Vector3.UnitX;     // (1, 0, 0)
+        Position = pos;
 
+        FOV = 90;
         Pitch = 0f;
         Yaw = 0f;
-        FOV = 40 * Math.PI / 180;
-        Sensitivity = 0.1f;
 
         // Initialize the first values of the vectors.
         UpdateVectors();
     }
 
     /// <summary>
-    /// Generates a ray from the camera to a certain point.
-    /// </summary>
-    /// <param name="point">The point to send the ray to.</param>
-    public Ray GetRay(Vector3 point)
-    {
-        Vector3 rayDirection = Vector3.Normalize(point - Position);
-            
-        return new Ray(Position, rayDirection);
-    }
-
-    /// <summary>
     /// Updates the various vectors available within the camera class when the position and/or aspect ratio are updated.
     /// </summary>
-    /// <param name="ratio">The current aspect ratio of the left side of the screen.</param>
     public void UpdateVectors()
     {
-        Forward = Vector3.Normalize(Direction - Position); // T - E
-        ScreenDistance = (float)(2 * Math.Tan(FOV / 2));
+        Matrix3 rotation = Matrix3.CreateRotationX(MathHelper.DegreesToRadians(Pitch)) * Matrix3.CreateRotationY(MathHelper.DegreesToRadians(Yaw));
 
-        ImagePlaneCenter = Position + Forward;
+        Direction = Vector3.Normalize(Vector3.TransformRow(Vector3.UnitZ, rotation));
+        Up = Vector3.Normalize(Vector3.TransformRow(Vector3.UnitY, rotation));
+        Right = Vector3.Cross(-Direction, Up);
 
-        Right = Vector3.Normalize(Vector3.Cross(new Vector3(0, 1, 0), Forward));
-        Up = Vector3.Cross(Forward, Right);
+        ScreenDistance = Vector3.Distance(Vector3.Zero, Right) /
+                         (float)MathHelper.Tan(MathHelper.DegreesToRadians(0.5 * FOV));
+        float ratio = 1f; // todo
 
-        P0 = ImagePlaneCenter - (ScreenDistance / 2) * Right + (ScreenDistance / 2) * Up;
-        P1 = P0 + ScreenDistance * Right;
-        P2 = P0 - ScreenDistance * Up;
+        ImagePlaneCenter = Position + ScreenDistance * Direction;
+
+        P0 = ImagePlaneCenter + Up - ratio * Right;
+        P1 = ImagePlaneCenter + Up + ratio * Right;
+        P2 = ImagePlaneCenter - Up - ratio * Right;
 
         U = P1 - P0;
         V = P2 - P0;
@@ -125,44 +109,35 @@ public class Camera
     /// <param name="time">The frame's "delta time" to determine performance and generalize the effect for all systems.</param>
     public void CameraKeyboardInput(KeyboardKeyEventArgs kea, float time)
     {
-        const float speed = 0.1f;
-        time = 1;
+        // Constant to set the movement speed.
+        const float speed = 0.4f; // TODO: adjust
 
-        // forwards
-        if (kea.Key is Keys.W or Keys.Up)
+        switch (kea.Key)
         {
-            Position.Z += speed * time;
-            Direction.Z += speed * time;
-        }
-        // backwards
-        if (kea.Key is Keys.S or Keys.Down)
-        {
-            Position.Z -= speed * time;
-            Direction.Z -= speed * time;
-        }
-        // left
-        if (kea.Key is Keys.A or Keys.Left)
-        {
-            Position.X -= speed * time;
-            Direction.X -= speed * time;
-        }
-        // right
-        if (kea.Key is Keys.D or Keys.Right)
-        {
-            Position.X += speed * time;
-            Direction.X += speed * time;
-        }
-        // up
-        if (kea.Key == Keys.Space)
-        {
-            Position.Y += speed * time;
-            Direction.Y += speed * time;
-        }
-        // down
-        if (kea.Key == Keys.LeftShift)
-        {
-            Position.Y -= speed * time;
-            Direction.Y -= speed * time;
+            // forwards
+            case Keys.W or Keys.Up:
+                Position.Z += speed * time;
+                break;
+            // backwards
+            case Keys.S or Keys.Down:
+                Position.Z -= speed * time;
+                break;
+            // left
+            case Keys.A or Keys.Left:
+                Position.X -= speed * time;
+                break;
+            // right
+            case Keys.D or Keys.Right:
+                Position.X += speed * time;
+                break;
+            // up
+            case Keys.Space:
+                Position.Y += speed * time;
+                break;
+            // down
+            case Keys.LeftShift:
+                Position.Y -= speed * time;
+                break;
         }
 
         UpdateVectors();
@@ -173,33 +148,24 @@ public class Camera
     /// </summary>
     public void RotationInput(MouseMoveEventArgs mea)
     {
-        Console.Write(mea.X + ", " + mea.DeltaX);
-        Yaw += mea.DeltaX * Sensitivity;
-        Pitch += mea.DeltaY * Sensitivity;
-        
-        switch (Pitch)
-        {
-            case > 89.0f:
-                Pitch = 89.0f;
-                break;
-            case < -89.0f:
-                Pitch = -89.0f;
-                break;
-            default:
-                Pitch -= mea.DeltaX * Sensitivity;
-                break;
-        }
-        
-        Quaternion xRotation = Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(-Pitch), 0, 0);
-        Direction = Vector3.Transform(Vector3.UnitZ, xRotation);
-        Up = Vector3.Transform(Vector3.UnitY, xRotation);
-        Right = Vector3.Transform(Vector3.UnitX, xRotation);
-        
-        Quaternion yRotation = Quaternion.FromEulerAngles(0, MathHelper.DegreesToRadians(Yaw), 0);
-        Direction = Vector3.Transform(Direction, yRotation);
-        Up = Vector3.Transform(Up, yRotation);
-        Right = Vector3.Transform(Right, yRotation);
-        
+        // The sensitivity of camera rotation.
+        const float sensitivity = 0.1f;
+
+        Yaw += mea.DeltaX * sensitivity;
+        Pitch += mea.DeltaY * sensitivity;
+
+        if (Pitch > 89.0f)
+            Pitch = 89.0f;
+        if (Pitch < -89.0f) 
+            Pitch = -89.0f;
+
+        UpdateVectors();
+    }
+
+    public void ZoomInput(MouseWheelEventArgs mea)
+    {
+        FOV -= mea.OffsetY;
+
         UpdateVectors();
     }
 }

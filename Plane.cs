@@ -1,11 +1,12 @@
-﻿using Vector3 = OpenTK.Mathematics.Vector3;
+﻿using System.Numerics;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
 public class Plane : Primitive
 {
-    public Vector3 Normal { get; }
-    public float S { get; } //distance to origin
+    public Vector3 Normal { get; set; }
+    public float S { get; set; } //distance to origin
 
     public Vector3 Color;
 
@@ -14,10 +15,10 @@ public class Plane : Primitive
     public float SpecularPower { get; set; }
     public float Reflectivity { get; set; }
 
-    public Plane(Vector3 normal, Vector3 s, Vector3 color, Vector3 diffusecolor, Vector3 specularcolor, float specularpower, float reflectivity)
+    public Plane(Vector3 normal, float s, Vector3 color, Vector3 diffusecolor, Vector3 specularcolor, float specularpower, float reflectivity)
     {
         Normal = normal.Normalized();
-        S = s.Length;
+        S = s;
         Color = color;
         DiffuseColor = diffusecolor;
         SpecularColor = specularcolor;
@@ -25,10 +26,10 @@ public class Plane : Primitive
         Reflectivity = reflectivity;
     }
 
-    public override Vector3 GetNormal(Vector3 point)
-    {
-     return Normal;
-    }
+    public Plane() { }
+
+    public override Vector3 GetNormal(Vector3 point) => Normal;
+    public override Vector3 GetColor() => Color;
 
     public override bool HitRay(Ray ray, out Vector3 intersect)
     {
@@ -46,14 +47,14 @@ public class Plane : Primitive
             intersect = Vector3.Zero;
             return false;
         }
-        intersect = ray.Origin +  t* ray.Direction;
+        intersect = ray.Origin + t * ray.Direction;
         return true;
     }
 
     public override bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
     {
         direction = lightPosition - intersectionPoint;
-        Ray ray = new Ray(intersectionPoint, direction);
+        Ray ray = new(intersectionPoint, direction);
 
         // Find the intersection point of the ray with the plane
         if (HitRay(ray, out Vector3 intersect))
@@ -73,16 +74,15 @@ public class Plane : Primitive
         return true;
     }
 
-  
-
-    public override Vector3 GetColor()
-    {
-        return Color;
-    }
     public override float GetReflectionCoefficient()
     {
         // Return the reflection coefficient for the sphere
         // Adjust this value as desired (0 for no reflection, 1 for full reflection)
         return Reflectivity; // Example reflection coefficient
     }
+}
+
+public class CheckeredPlane : Plane
+{
+    public Vector3 GetCheckeredColor(Vector3 point) => ((int)(Math.Floor(2 * point.X) + Math.Floor(point.Z)) & 1) * Vector3.One; // create a new vector.
 }

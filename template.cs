@@ -209,12 +209,18 @@ namespace INFOGR2023Template
 
         protected override void OnMouseMove(MouseMoveEventArgs mea)
         {
-            Console.WriteLine("test");
+            // Console.WriteLine("test");
             if (app == null) return;
             if (State == CursorState.Grabbed)
             {
                 app.CallRotation(mea);
             }
+        }
+
+        protected override void OnMouseWheel(MouseWheelEventArgs mea)
+        {
+            if (app == null) return;
+            app.CallZoom(mea);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)

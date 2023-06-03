@@ -22,7 +22,7 @@ public class Sphere : Primitive
         DiffuseColor = diffcolor;
         SpecularColor = speccolor;
         SpecularPower = specularPower;
-        Reflectivity = 1;
+        Reflectivity = reflectivity;
     }
 
     public override bool HitRay(Ray ray, out Vector3 intersect)
