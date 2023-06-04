@@ -162,7 +162,7 @@ namespace INFOGR2023Template
                 GL.Uniform1(GL.GetUniformLocation(programID, "pixels"), 0);
             }
             // Register events to adjust the camera based on mouse and keyboard input.
-            this.KeyDown += ea => app.CallMovement(ea, deltaTime);
+            this.KeyDown += kea => app.Raytracer.Camera.MovementInput(kea, deltaTime);
 
             app.Init();
         }
@@ -177,13 +177,13 @@ namespace INFOGR2023Template
             base.OnResize(e);
             // called upon window resize. Note: does not change the size of the pixel buffer.
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
+
             if (allowPrehistoricOpenGL)
             {
                 GL.MatrixMode(MatrixMode.Projection);
                 GL.LoadIdentity();
                 GL.Ortho(-1.0, 1.0, -1.0, 1.0, 0.0, 4.0);
             }
-            // app?.AdjustAspectRatio();
         }
 
         // called once per frame; app logic
@@ -209,24 +209,17 @@ namespace INFOGR2023Template
 
         protected override void OnMouseMove(MouseMoveEventArgs mea)
         {
-            // Console.WriteLine("test");
             if (app == null) return;
             if (State == CursorState.Grabbed)
-            {
-                app.CallRotation(mea);
-            }
+                app.Raytracer.Camera.RotationInput(mea);
         }
+        protected override void OnMouseWheel(MouseWheelEventArgs mea) => app?.Raytracer.Camera.ZoomInput(mea);
 
-        protected override void OnMouseWheel(MouseWheelEventArgs mea)
-        {
-            if (app == null) return;
-            app.CallZoom(mea);
-        }
-
+        // called once per frame; render
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-            // called once per frame; render
+
             if (app != null) app.Tick();
             if (terminated)
             {

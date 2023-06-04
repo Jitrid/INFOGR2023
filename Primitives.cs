@@ -11,7 +11,10 @@ public abstract class Primitive
     public Vector3 SpecularColor { get; set; }
     public float SpecularPower { get; set; }
 
-    public float Reflectivity { get; set; }
+    /// <summary>
+    /// Determines the level of reflectivity (between 0f and 1f).
+    /// </summary>
+    public float ReflectionCoefficient { get; set; }
 
     /// <summary>
     /// Indicates whether a ray has intersected with the primitive.
@@ -28,9 +31,11 @@ public abstract class Primitive
     /// <param name="point">The point that should be normalized.</param>
     /// <returns>The normalized vector.</returns>
     public abstract Vector3 GetNormal(Vector3 point);
-
+    /// <summary>
+    /// Returns the primitive's color.
+    /// </summary>
+    /// <returns></returns>
     public abstract Vector3 GetColor();
-    public abstract float GetReflectionCoefficient();
 
 
     /// <summary>
@@ -43,5 +48,3 @@ public abstract class Primitive
     /// <returns>True if there is an intersection, false otherwise.</returns>
     public abstract bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction);
 }
-
-   

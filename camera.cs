@@ -10,6 +10,8 @@ namespace INFOGR2023Template;
 /// </summary>
 public class Camera
 {
+    private readonly Surface _screen;
+
     /// <summary>
     /// The current position of the camera (default: 0, 0, 0).
     /// </summary>
@@ -66,23 +68,25 @@ public class Camera
     public Vector3 U;
     public Vector3 V;
 
-    public Camera(Vector3 pos)
+    public Camera(Surface screen, Vector3 pos)
     {
+        _screen = screen;
         Position = pos;
 
-        FOV = 90;
+        FOV = 70;
         Pitch = 0f;
         Yaw = 0f;
 
         // Initialize the first values of the vectors.
-        UpdateVectors();
+        UpdateCamera();
     }
 
     /// <summary>
-    /// Updates the various vectors available within the camera class when the position and/or aspect ratio are updated.
+    /// Updates the camera specifications whenever necessary.
     /// </summary>
-    public void UpdateVectors()
+    public void UpdateCamera()
     {
+        float aspectRatio = _screen.height / (_screen.width / 2);
         Matrix3 rotation = Matrix3.CreateRotationX(MathHelper.DegreesToRadians(Pitch)) * Matrix3.CreateRotationY(MathHelper.DegreesToRadians(Yaw));
 
         Direction = Vector3.Normalize(Vector3.TransformRow(Vector3.UnitZ, rotation));
@@ -91,13 +95,12 @@ public class Camera
 
         ScreenDistance = Vector3.Distance(Vector3.Zero, Right) /
                          (float)MathHelper.Tan(MathHelper.DegreesToRadians(0.5 * FOV));
-        float ratio = 1f; // todo
 
         ImagePlaneCenter = Position + ScreenDistance * Direction;
 
-        P0 = ImagePlaneCenter + Up - ratio * Right;
-        P1 = ImagePlaneCenter + Up + ratio * Right;
-        P2 = ImagePlaneCenter - Up - ratio * Right;
+        P0 = ImagePlaneCenter + Up - aspectRatio * Right;
+        P1 = ImagePlaneCenter + Up + aspectRatio * Right;
+        P2 = ImagePlaneCenter - Up - aspectRatio * Right;
 
         U = P1 - P0;
         V = P2 - P0;
@@ -107,10 +110,10 @@ public class Camera
     /// Moves the camera on one of the axis based on certain key binds.
     /// </summary>
     /// <param name="time">The frame's "delta time" to determine performance and generalize the effect for all systems.</param>
-    public void CameraKeyboardInput(KeyboardKeyEventArgs kea, float time)
+    public void MovementInput(KeyboardKeyEventArgs kea, float time)
     {
         // Constant to set the movement speed.
-        const float speed = 0.4f; // TODO: adjust
+        const float speed = 0.3f;
 
         switch (kea.Key)
         {
@@ -140,7 +143,7 @@ public class Camera
                 break;
         }
 
-        UpdateVectors();
+        UpdateCamera();
     }
 
     /// <summary>
@@ -159,13 +162,16 @@ public class Camera
         if (Pitch < -89.0f) 
             Pitch = -89.0f;
 
-        UpdateVectors();
+        UpdateCamera();
     }
 
+    /// <summary>
+    /// Adjusts the Field of View (FOV) to create a zoom effect.
+    /// </summary>
     public void ZoomInput(MouseWheelEventArgs mea)
     {
         FOV -= mea.OffsetY;
 
-        UpdateVectors();
+        UpdateCamera();
     }
 }

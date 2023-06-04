@@ -4,49 +4,58 @@ namespace INFOGR2023Template;
 
 internal class Raytracer
 {
-    private readonly Surface _screen;
-    private readonly Debug _debug;
-    private readonly Scene _scene;
+    /// <summary>
+    /// The main window.
+    /// </summary>
+    public Surface Screen;
+    /// <summary>
+    /// The debug window (on the right) of the application.
+    /// </summary>
+    public Debug Debug;
+    /// <summary>
+    /// The scene that contains the primitives and light sources.
+    /// </summary>
+    public Scene Scene;
+    /// <summary>
+    /// The main camera of the application.
+    /// </summary>
     public Camera Camera;
 
     public Raytracer(Surface screen)
     {
-        _screen = screen;
-        _scene = new Scene();
+        Screen = screen;
+        Scene = new Scene();
 
-        Camera = new Camera(new Vector3(0f, 1.5f, -4f));
+        Debug = new Debug(screen, Scene);
 
-        _debug = new Debug(screen, _scene);
+        Camera = new Camera(Screen, new Vector3(0f, 1.5f, -4f));
     }
 
-    public void DebugRender() => _debug.Render();
-
+    /// <summary>
+    /// Renders the visualisation of generated rays shot to all pixels on the screen.
+    /// </summary>
     public void Render()
     {
-        _screen.Clear(0);
-        _debug.Render();
+        Screen.Clear(0);
+        Debug.Render();
 
-        Parallel.For(0, _screen.height, i => // y
+        Parallel.For(0, Screen.height, y =>
         {
-            Parallel.For (0, _screen.width/2,  j =>  // x
+            Parallel.For (0, Screen.width/2,  x =>
             {
-                _screen.pixels[i * _screen.width + j] = 0x304080;
+                Vector3 point = Camera.P0 + ((float)x / ((float)Screen.width / 2)) * Camera.U + ((float)y / (float)Screen.height) * Camera.V;
+                point = Vector3.Normalize(point - Camera.Position);
 
-                Vector3 punty = Camera.P0 + ((float)j / ((float)_screen.width / 2)) * Camera.U + ((float)i / (float)_screen.height) * Camera.V;
-                punty = Vector3.Normalize(punty - Camera.Position);
+                Ray viewRay = new(Camera.Position, point);
 
-                Ray viewRay = new(Camera.Position, punty);
-
-                Vector3 colorV = Intersection.TraceRay(_debug, Camera, viewRay, _scene, 5, i);
-                int color = Utilities.ColorToInt(colorV);
-                _screen.pixels[i * _screen.width + j] = color;
+                Vector3 colorV = Intersection.TraceRay(Debug, Camera, viewRay, Scene, 5);
+                Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(colorV);
             });
         });
 
-        // Prints additional information to the debug window as displayable text.
-        _screen.Print($"P0: {Camera.P0}", (_screen.width / 2) + 20, _screen.height - 30, 0xffffff);
-        _screen.Print($"P1: {Camera.P1}", (_screen.width / 2) + 20, _screen.height - 60, 0xffffff);
-        _screen.Print($"P2: {Camera.P2}", (_screen.width / 2) + 20, _screen.height - 90, 0xffffff);
-        _screen.Print($"Pos: {Camera.Position}", (_screen.width / 2) + 20, _screen.height - 120, 0xffffff);
+        // Prints useful information to the user's window.
+        Screen.Print($"FOV: {Camera.FOV}", 15, 20, 0xffffff);
+        Screen.Print($"Pitch: {Camera.Pitch}", 15, 50, 0xffffff);
+        Screen.Print($"Yaw: {Camera.Yaw}", 15, 80, 0xffffff);
     }
 }

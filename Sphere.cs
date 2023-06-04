@@ -9,12 +9,7 @@ public class Sphere : Primitive
 
     public Vector3 Color { get; }
 
-    public Vector3 DiffuseColor { get; set; }
-    public Vector3 SpecularColor { get; set; }
-    public float SpecularPower { get; set; }
-    public float Reflectivity { get; set; }
-
-    public Sphere(Vector3 center, float radius, Vector3 color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectivity)
+    public Sphere(Vector3 center, float radius, Vector3 color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectionCoefficient)
     {
         Center = center;
         Radius = radius;
@@ -22,19 +17,23 @@ public class Sphere : Primitive
         DiffuseColor = diffcolor;
         SpecularColor = speccolor;
         SpecularPower = specularPower;
-        Reflectivity = reflectivity;
+        ReflectionCoefficient = reflectionCoefficient;
     }
+
+    public override Vector3 GetNormal(Vector3 point) => Vector3.Normalize(point - Center);
+
+    public override Vector3 GetColor() => Color;
 
     public override bool HitRay(Ray ray, out Vector3 intersect)
     {
         intersect = Vector3.Zero;
 
         float a = Vector3.Dot(ray.Direction, ray.Direction);
-        float b = 2 * (Vector3.Dot(ray.Origin, ray.Direction) - Vector3.Dot(this.Center, ray.Direction));
-        float c = Vector3.Dot(this.Center, this.Center) + Vector3.Dot(ray.Origin, ray.Origin) - 2 * Vector3.Dot(this.Center, ray.Origin) - (this.Radius * this.Radius);
+        float b = 2 * (Vector3.Dot(ray.Origin, ray.Direction) - Vector3.Dot(Center, ray.Direction));
+        float c = Vector3.Dot(Center, Center) + Vector3.Dot(ray.Origin, ray.Origin) - 2 * Vector3.Dot(Center, ray.Origin) - (Radius * Radius);
         float discriminant = b * b - 4 * a * c;
 
-        //Console.WriteLine(discriminant);
+        // No intersections.
         if (discriminant < 0)
         {
             intersect = Vector3.Zero;
@@ -58,16 +57,14 @@ public class Sphere : Primitive
         return false;
     }
 
-    public override Vector3 GetNormal(Vector3 point) => Vector3.Normalize(point - Center);
-
     public override bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
     {
         direction = lightPosition - intersectionPoint;
         Ray ray = new(intersectionPoint, direction);
 
         float a = Vector3.Dot(ray.Direction, ray.Direction);
-        float b = 2 * Vector3.Dot(this.Center, ray.Direction);
-        float c = Vector3.Dot(this.Center, this.Center) - (this.Radius * this.Radius);
+        float b = 2 * Vector3.Dot(Center, ray.Direction);
+        float c = Vector3.Dot(Center, Center) - (Radius * Radius);
         float discriminant = b * b - 4 * a * c;
 
         if (discriminant < 0)
@@ -84,18 +81,5 @@ public class Sphere : Primitive
         }
 
         return true;
-    }
-
-
-
-    public override Vector3 GetColor()
-    {
-        return Color;
-    }
-    public override float GetReflectionCoefficient()
-    {
-        // Return the reflection coefficient for the sphere
-        // Adjust this value as desired (0 for no reflection, 1 for full reflection)
-        return Reflectivity; // Example reflection coefficient
     }
 }

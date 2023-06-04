@@ -24,14 +24,4 @@ public class Light
         G = green;
         B = blue;
     }
-
-    public Vector3 LightRay(Vector3 intersection)
-    {
-        Vector3 lightray = new(
-            Location.X - intersection.X,
-            Location.Y - intersection.Y,
-            Location.Z - intersection.Z); 
-
-        return lightray;
-    }
 }

@@ -4,43 +4,13 @@ namespace INFOGR2023Template;
 
 public class Intersection
 {
-    public static bool Shadowed(Vector3 intersectionPoint, Vector3 lightPosition, Vector3 direction, List<Primitive> objects, Primitive sender, Debug debug, int i)
-    {
-        Ray ray = new(intersectionPoint, direction);
-
-        foreach (Primitive o in objects)
-        {
-            if (o == sender) continue;
-            if (o.HitRay(ray, out Vector3 intersect))
-            {
-                
-                // Check if the intersection point is between the intersection point and the light position
-                Vector3 intersectToLight = lightPosition - intersect;
-                float distanceToLight = intersectToLight.Length;
-
-                // Check if the distance to the light is smaller than the distance to the intersection point
-                if (distanceToLight == intersectToLight.Length- 0.000001f)
-                {
-                    // The intersection point is shadowed by the sphere
-                    if (o.GetType() == typeof(Sphere))
-                        debug.DrawRays(intersectionPoint, intersectionPoint + Vector3.One, Utilities.Ray.Shadow, i);
-
-                    return true;
-                }
-            }
-        }
-
-        // Find the intersection point of the ray with the plane
-        return false;
-    }
-
-    public static bool FindClosestIntersection(Debug debug, Camera camera, Ray ray, List<Primitive> objects, out Vector3 intersectionPoint, out Primitive closestPrimitive, int i)
+    public static bool FindClosestIntersection(Scene scene, Debug debug, Camera camera, Ray ray, out Vector3 intersectionPoint, out Primitive closestPrimitive)
     {
         intersectionPoint = ray.Direction * 500;
         closestPrimitive = null;
         float closestDistance = float.MaxValue;
 
-        foreach (Primitive primitive in objects)
+        foreach (Primitive primitive in scene.Primitives)
         {
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
@@ -54,27 +24,65 @@ public class Intersection
                 }
             }
 
-            if (closestPrimitive != null && primitive.GetType() == typeof(Sphere))
-                debug.DrawRays(camera.Position, intersectionPoint, Utilities.Ray.Primary, i);
+            // Draw the primary rays.
+            debug.DrawRays(camera.Position, intersectionPoint, Utilities.Ray.Primary);
         }
 
         return closestPrimitive != null;
     }
 
-    public static Vector3 TraceRay(Debug debug, Camera camera, Ray ray, Scene s, int maxbounce, int i)
+    /// <summary>
+    /// // todo
+    /// </summary>
+    /// <param name="scene">The scene from which to pull the primitives.</param>
+    /// <param name="debug">The debug window on which to draw the 2D shadow rays.</param>
+    /// <param name="intersection">The closest intersection point.</param>
+    /// <param name="direction">The light direction that is dynamically determined for each light source.</param>
+    /// <param name="primitive">The primitive to check.</param>
+    /// <returns></returns> // todo
+    public static bool Shadowed(Scene scene, Debug debug, Vector3 intersection, out Vector3 direction, Primitive primitive)
+    {
+        direction = Vector3.Zero;
+
+        foreach (Light light in scene.Lights)
+        {
+            direction = Vector3.Normalize(light.Location - intersection);
+            Ray ray = new(intersection, direction);
+
+            if (primitive.HitRay(ray, out Vector3 intersect))
+            {
+                // Check if the intersection point is between the intersection point and the light position
+                Vector3 intersectToLight = light.Location - intersect;
+                float distanceToLight = intersectToLight.Length;
+
+                // Check if the distance to the light is smaller than the distance to the intersection point
+                if (distanceToLight == intersectToLight.Length - 0.000001f)
+                {
+                    // The intersection point is shadowed by the sphere
+                    if (primitive.GetType() == typeof(Sphere))
+                        debug.DrawRays(intersection, intersection + Vector3.One, Utilities.Ray.Shadow);
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static Vector3 TraceRay(Debug debug, Camera camera, Ray ray, Scene scene, int maxbounce)
     {
         Vector3 color = Vector3.Zero;
-        FindClosestIntersection(debug, camera, ray, s.Primitives, out Vector3 closestIntersectionPoint, out Primitive closestPrimitive, i);
+        FindClosestIntersection(scene, debug, camera, ray, out Vector3 closestIntersectionPoint, out Primitive closestPrimitive);
 
         if (closestPrimitive == null) return Vector3.UnitZ;
         // if (closestPrimitive.GetType() == typeof(Plane))
-        if (closestPrimitive.GetReflectionCoefficient() == 0f)
+        if (closestPrimitive.ReflectionCoefficient == 0f)
         {
-            Vector3 lightDirection = Vector3.Normalize(s.Lights[0].Location - closestIntersectionPoint);
             Vector3 normal = closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 viewDirection = Vector3.Normalize(ray.Direction);
 
-            if (!Shadowed(closestIntersectionPoint, s.Lights[0].Location, lightDirection, s.Primitives, closestPrimitive, debug, i))
+            if (!Shadowed(scene, debug, closestIntersectionPoint, out Vector3 lightDirection, closestPrimitive))
             {
                 // if (closestPrimitive.GetType() == typeof(Plane))
                 // {
@@ -89,34 +97,28 @@ public class Intersection
                 // }
 
                 return color;
-                // return closestPrimitive.GetColor();
             }
             
             return Vector3.Zero;
         }
         
-        if (closestPrimitive.GetReflectionCoefficient() == 1f)
+        if (closestPrimitive.ReflectionCoefficient == 1f)
         {
-            
             Vector3 surfaceNormal = closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 reflectionDirection = ReflectRay(ray.Direction, surfaceNormal); 
             Ray reflectedRay = new(closestIntersectionPoint, Vector3.Normalize(reflectionDirection));
             if (maxbounce > 0)
             { 
-                color += closestPrimitive.GetColor() * closestPrimitive.GetReflectionCoefficient() * TraceRay(debug, camera, reflectedRay, s, maxbounce - 1, i);
+                color += closestPrimitive.GetColor() * closestPrimitive.ReflectionCoefficient * TraceRay(debug, camera, reflectedRay, scene, maxbounce - 1);
                 if (color.X > 1f) color.X = 1f;
                 if (color.Y > 1f) color.Y = 1f;
                 if (color.Z > 1f) color.Z = 1f;
 
-                debug.DrawRays(closestIntersectionPoint, reflectionDirection * 500, Utilities.Ray.Reflection, i);
+                // debug.DrawRays(closestIntersectionPoint, reflectionDirection * 500, Utilities.Ray.Reflection);
             }
         }
 
-        Vector3 dir = Vector3.Normalize(s.Lights[0].Location - closestIntersectionPoint);
-
         return color;
-        // return Utilities.ShadeColor(Vector3.One, dir, Vector3.Normalize(ray.Direction), 
-        //     closestPrimitive.GetNormal(closestIntersectionPoint), closestPrimitive.GetColor(), 0.25f, 0.1f, 1f);
     }
     
     public static Vector3 ReflectRay(Vector3 incidentDirection, Vector3 surfaceNormal)

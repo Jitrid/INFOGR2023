@@ -1,29 +1,23 @@
-﻿using System.Numerics;
-using Vector3 = OpenTK.Mathematics.Vector3;
+﻿using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
 public class Plane : Primitive
 {
     public Vector3 Normal { get; set; }
-    public float S { get; set; } //distance to origin
+    public float Distance { get; set; }
 
     public Vector3 Color;
 
-    public Vector3 DiffuseColor { get; set; }
-    public Vector3 SpecularColor { get; set; }
-    public float SpecularPower { get; set; }
-    public float Reflectivity { get; set; }
-
-    public Plane(Vector3 normal, float s, Vector3 color, Vector3 diffusecolor, Vector3 specularcolor, float specularpower, float reflectivity)
+    public Plane(Vector3 normal, float distance, Vector3 color, Vector3 diffusecolor, Vector3 specularcolor, float specularpower, float reflectionCoefficient)
     {
-        Normal = normal.Normalized();
-        S = s;
+        Normal = Vector3.Normalize(normal);
+        Distance = distance;
         Color = color;
         DiffuseColor = diffusecolor;
         SpecularColor = specularcolor;
         SpecularPower = specularpower;
-        Reflectivity = reflectivity;
+        ReflectionCoefficient = reflectionCoefficient;
     }
 
     public Plane() { }
@@ -36,14 +30,14 @@ public class Plane : Primitive
         float denom = Vector3.Dot(ray.Direction, Normal);
         if (denom == 0)
         {
-            //parallel 
+            // Parallel.
             intersect = Vector3.Zero;
             return false;
         }
-        float t = (Vector3.Dot(ray.Origin, Normal) - S) / denom;
+        float t = (Vector3.Dot(ray.Origin, Normal) - Distance) / denom;
         if (t < 0)
         {
-            //Voorbij de camera
+            // Beyond the camera.
             intersect = Vector3.Zero;
             return false;
         }
@@ -72,13 +66,6 @@ public class Plane : Primitive
         }
 
         return true;
-    }
-
-    public override float GetReflectionCoefficient()
-    {
-        // Return the reflection coefficient for the sphere
-        // Adjust this value as desired (0 for no reflection, 1 for full reflection)
-        return Reflectivity; // Example reflection coefficient
     }
 }
 

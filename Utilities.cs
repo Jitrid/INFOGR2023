@@ -14,7 +14,7 @@ public class Utilities
     /// <summary>
     /// The amount of steps to be used for the coordinate system.
     /// </summary>
-    public const int Steps = 32;
+    public const int Steps = 64;
 
     /// <summary>
     /// Translates an x-axis coordinate into an appropriate screen width.
@@ -25,7 +25,7 @@ public class Utilities
         float stepSize = range / Steps;
 
         float translatedX = screen.width / 2 + (x + Steps / 2) * stepSize;
-
+        
         if (translatedX < screen.width / 2)
             return screen.width / 2;
         if (translatedX > screen.width)
@@ -72,26 +72,6 @@ public class Utilities
             Z = input.Z
         };
         return output;
-    }
-
-    // Color methods.
-    public static int GetColor(float x, float y, float z) => (int)(255 * x + 255 * y + 255 * z);
-
-    public static Vector3 CalculateColor(Vector3 intersectionPoint)
-    {
-        // Determine the color based on the position of the intersection point
-        if (intersectionPoint.X < 0 && intersectionPoint.Z < 0)
-        {
-            return new Vector3(1f, 0f, 0f); // Red
-        }
-        else if (intersectionPoint.X >= 0 && intersectionPoint.Z >= 0)
-        {
-            return new Vector3(0f, 1f, 0f); // Green
-        }
-        else
-        {
-            return new Vector3(0f, 0f, 1f); // Blue
-        }
     }
 
     /// <summary>

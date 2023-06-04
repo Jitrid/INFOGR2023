@@ -21,6 +21,4 @@ public class Ray
         Origin = origin;
         Direction = direction;
     }
-
-    public Vector3 Parametric(float t) => Origin + t * Direction;
 }
