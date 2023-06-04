@@ -2,7 +2,7 @@
 
 namespace INFOGR2023Template;
 
-internal class Raytracer
+public class Raytracer
 {
     /// <summary>
     /// The main window.
@@ -26,7 +26,7 @@ internal class Raytracer
         Screen = screen;
         Scene = new Scene();
 
-        Debug = new Debug(screen, Scene);
+        Debug = new Debug(this);
 
         Camera = new Camera(Screen, new Vector3(0f, 1.5f, -4f));
     }
@@ -37,7 +37,7 @@ internal class Raytracer
     public void Render()
     {
         Screen.Clear(0);
-        Debug.DrawPrimitives();
+        Debug.Render();
 
         Parallel.For(0, Screen.height, y =>
         {

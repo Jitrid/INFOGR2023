@@ -4,25 +4,26 @@ namespace INFOGR2023Template;
 
 public class Debug
 {
-    // Used to access certain methods or fields from the respective classes.
-    private readonly Surface _screen;
-    private readonly Scene _scene;
+    private readonly Raytracer _raytracer;
 
     // Counters to keep track of the amount of rays that have been drawn.
     private int _count;  // primary rays
     private int _count1; // shadow rays
     private int _count2; // reflection rays
 
-    public Debug(Surface screen, Scene scene)
-    {
-        _screen = screen;
-        _scene = scene;
-    }
+    public Debug(Raytracer raytracer) => _raytracer = raytracer;
+    
 
-    // Must be run separately as the primitives are never drawn on their own in the main Render method.
+    public void Render()
+    {
+        _raytracer.Screen.Line(Utilities.TranslateX(_raytracer.Screen, _raytracer.Camera.P0.X), Utilities.TranslateZ(_raytracer.Screen, _raytracer.Camera.P0.Z),
+            Utilities.TranslateX(_raytracer.Screen, _raytracer.Camera.P1.X), Utilities.TranslateZ(_raytracer.Screen, _raytracer.Camera.P1.Z), 0xffffff);
+        DrawPrimitives();
+    }
+    
     public void DrawPrimitives()
     {
-        foreach (Primitive p in _scene.Primitives)
+        foreach (Primitive p in _raytracer.Scene.Primitives)
             if (p is Sphere sphere)
             {
                 // Increment the denominator for smoother circles.
@@ -32,12 +33,12 @@ public class Debug
 
                 for (float theta = 0; theta < MathHelper.TwoPi; theta += smoothness)
                 {
-                    int x = Utilities.TranslateX(_screen, (float)(sphere.Center.X + sphere.Radius * MathHelper.Cos(theta)));
-                    int y = Utilities.TranslateZ(_screen, (float)(sphere.Center.Z + sphere.Radius * MathHelper.Sin(theta)));
+                    int x = Utilities.TranslateX(_raytracer.Screen, (float)(sphere.Center.X + sphere.Radius * MathHelper.Cos(theta)));
+                    int y = Utilities.TranslateZ(_raytracer.Screen, (float)(sphere.Center.Z + sphere.Radius * MathHelper.Sin(theta)));
 
                     // Prevent loose cannons.
                     if (x1 > -1 && y1 > -1)
-                        _screen.Line(x1, y1, x, y, Utilities.ColorToInt(sphere.Color));
+                        _raytracer.Screen.Line(x1, y1, x, y, Utilities.ColorToInt(sphere.Color));
 
                     x1 = x; y1 = y;
                 }
@@ -53,12 +54,12 @@ public class Debug
     public void DrawRays(Vector3 start, Vector3 end, Utilities.Ray ray)
     {
         // Every <max>th amount of rays will be printed onto the debug window.
-        int max = (ray switch
+        int max = ray switch
         {
-            Utilities.Ray.Primary => 10000,
-            Utilities.Ray.Shadow => 200,
-            _ => 500
-        });
+            Utilities.Ray.Primary => 100000,
+            Utilities.Ray.Shadow => 20,
+            _ => 5000
+        };
 
         // Determine which color to use for the ray.
         int color = (ray switch
@@ -74,7 +75,7 @@ public class Debug
             case Utilities.Ray.Primary:
                 _count++;
                 break;
-            case Utilities.Ray.Shadow: // TODO: fix shadow rays
+            case Utilities.Ray.Shadow:
                 _count1++;
                 break;
             default:
@@ -90,8 +91,8 @@ public class Debug
                 _ => _count2 % max == 0
             })
         {
-            _screen.Line(Utilities.TranslateX(_screen, start.X), Utilities.TranslateZ(_screen, start.Z),
-                Utilities.TranslateX(_screen, end.X), Utilities.TranslateZ(_screen, end.Z), color);
+            _raytracer.Screen.Line(Utilities.TranslateX(_raytracer.Screen, start.X), Utilities.TranslateZ(_raytracer.Screen, start.Z),
+                Utilities.TranslateX(_raytracer.Screen, end.X), Utilities.TranslateZ(_raytracer.Screen, end.Z), color);
         }
     }
 }
