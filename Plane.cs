@@ -48,7 +48,7 @@ public class Plane : Primitive
     public override bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
     {
         direction = lightPosition - intersectionPoint;
-        Ray ray = new(intersectionPoint, direction);
+        Ray ray = new(intersectionPoint, direction, 0);
 
         // Find the intersection point of the ray with the plane
         if (HitRay(ray, out Vector3 intersect))

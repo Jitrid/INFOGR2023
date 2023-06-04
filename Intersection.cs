@@ -25,7 +25,8 @@ public class Intersection
             }
 
             // Draw the primary rays.
-            debug.DrawRays(camera.Position, intersectionPoint, Utilities.Ray.Primary);
+            if (ray.Origin == camera.Position) 
+                debug.DrawRays(camera.Position, intersectionPoint, Utilities.Ray.Primary);
         }
 
         return closestPrimitive != null;
@@ -42,32 +43,31 @@ public class Intersection
     /// <returns></returns> // todo
     public static bool Shadowed(Scene scene, Debug debug, Vector3 intersection, out Vector3 direction, Primitive primitive)
     {
-        // direction = Vector3.Zero;
+        direction = Vector3.Zero;
 
-        // foreach (Light light in scene.Lights)
-        // {
-        Light light = scene.Lights[0];
-        direction = Vector3.Normalize(light.Location - intersection);
-        Ray ray = new(intersection, direction);
-
-        foreach (Primitive p in scene.Primitives)
+        foreach (Light light in scene.Lights)
         {
-            if (p == primitive) continue;
-            if (p.HitRay(ray, out Vector3 intersect))
-            {
-                // The intersection point is shadowed by the sphere
-                if (p.GetType() == typeof(Sphere))
-                    debug.DrawRays(intersection, intersect, Utilities.Ray.Shadow);
+            direction = Vector3.Normalize(light.Location - intersection);
+            Ray ray = new(intersection, direction, 0);
 
-                return true;
+            foreach (Primitive p in scene.Primitives)
+            {
+                if (p == primitive) continue;
+                if (p.HitRay(ray, out Vector3 intersect))
+                {
+                    // The intersection point is shadowed by the sphere
+                    if (p.GetType() == typeof(Sphere))
+                        debug.DrawRays(intersection, intersect, Utilities.Ray.Shadow);
+
+                    return true;
+                }
             }
         }
-        // }
 
         return false;
     }
 
-    public static Vector3 TraceRay(Debug debug, Camera camera, Ray ray, Scene scene, int maxbounce)
+    public static Vector3 TraceRay(Debug debug, Camera camera, Ray ray, Scene scene)
     {
         Vector3 color = Vector3.Zero;
 
@@ -78,17 +78,14 @@ public class Intersection
         // Ignore reflections if the primitive's reflectivity is disabled (0f).
         if (closestPrimitive.ReflectionCoefficient != 1f)
         {
-            Vector3 ldir = Vector3.Normalize(scene.Lights[0].Location - closestIntersectionPoint);
             Vector3 normal = closestPrimitive.GetNormal(closestIntersectionPoint);
-            Vector3 vdir = Vector3.Normalize(ray.Direction);
+            Vector3 viewDirection = Vector3.Normalize(ray.Direction);
 
-            if (!Shadowed(scene, debug, closestIntersectionPoint, out ldir, closestPrimitive)) 
-            {
-                return ShadeColor(new Vector3(0.3f, 0.3f, 0.3f), 
-                    ldir, vdir, normal, closestPrimitive.GetColor(), 0.7f);
+            if (!Shadowed(scene, debug, closestIntersectionPoint, out Vector3 lightDirection, closestPrimitive))
+                return ShadeColor(new Vector3(0.3f, 0.3f, 0.3f),
+                    lightDirection, viewDirection, normal, closestPrimitive.GetColor(), 0.7f);
 
-            }
-            else return Vector3.Zero;
+            return Vector3.Zero;
         }
         
         // Adjust for reflectivity if the primitive's reflectivity is enabled (>0f).
@@ -97,14 +94,15 @@ public class Intersection
             Vector3 surfaceNormal = closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 reflectionDirection = ReflectRay(Vector3.Normalize(ray.Direction), Vector3.Normalize(surfaceNormal));
             
-            Ray reflectedRay = new(closestIntersectionPoint, Vector3.Normalize(reflectionDirection));
-            if (maxbounce > 0)
+            Ray reflectedRay = new(closestIntersectionPoint, Vector3.Normalize(reflectionDirection), 16);
+            if (reflectedRay.MaxBounces > 0)
             {
                 if (FindClosestIntersection(scene, debug, camera, reflectedRay, out Vector3 reflectionPoint, out Primitive reflectPrimitive))
                 {
                     if (reflectPrimitive != closestPrimitive)
                     {
-                        color += (closestPrimitive.GetColor() * closestPrimitive.ReflectionCoefficient) * TraceRay(debug, camera, reflectedRay, scene, maxbounce - 1);
+                        reflectedRay.MaxBounces--;
+                        color += (closestPrimitive.GetColor() * closestPrimitive.ReflectionCoefficient) * TraceRay(debug, camera, reflectedRay, scene);
                         color = Utilities.ResolveOutOfBounds(color);
                     }
 

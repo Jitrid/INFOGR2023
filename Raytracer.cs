@@ -46,9 +46,9 @@ public class Raytracer
                 Vector3 point = Camera.P0 + ((float)x / ((float)Screen.width / 2)) * Camera.U + ((float)y / (float)Screen.height) * Camera.V;
                 point = Vector3.Normalize(point - Camera.Position);
 
-                Ray viewRay = new(Camera.Position, point);
+                Ray viewRay = new(Camera.Position, point, 0);
 
-                Vector3 colorV = Intersection.TraceRay(Debug, Camera, viewRay, Scene, 16);
+                Vector3 colorV = Intersection.TraceRay(Debug, Camera, viewRay, Scene);
                 Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(colorV);
             });
         });

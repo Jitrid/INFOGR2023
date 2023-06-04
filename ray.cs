@@ -16,9 +16,12 @@ public class Ray
     /// </summary>
     public Vector3 Direction { get; set; }
 
-    public Ray(Vector3 origin, Vector3 direction)
+    public int MaxBounces;
+
+    public Ray(Vector3 origin, Vector3 direction, int maxBounces)
     {
         Origin = origin;
         Direction = direction;
+        MaxBounces = maxBounces;
     }
 }

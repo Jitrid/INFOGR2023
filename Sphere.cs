@@ -60,7 +60,7 @@ public class Sphere : Primitive
     public override bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
     {
         direction = lightPosition - intersectionPoint;
-        Ray ray = new(intersectionPoint, direction);
+        Ray ray = new(intersectionPoint, direction, 0);
 
         float a = Vector3.Dot(ray.Direction, ray.Direction);
         float b = 2 * Vector3.Dot(Center, ray.Direction);
