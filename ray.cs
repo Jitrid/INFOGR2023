@@ -16,6 +16,9 @@ public class Ray
     /// </summary>
     public Vector3 Direction { get; set; }
 
+    /// <summary>
+    /// The maximum amount of times the ray should bounce for reflections.
+    /// </summary>
     public int MaxBounces;
 
     public Ray(Vector3 origin, Vector3 direction, int maxBounces)

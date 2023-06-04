@@ -12,7 +12,6 @@ public class Debug
     private int _count2; // reflection rays
 
     public Debug(Raytracer raytracer) => _raytracer = raytracer;
-    
 
     public void Render()
     {
@@ -58,7 +57,7 @@ public class Debug
         {
             Utilities.Ray.Primary => 100000,
             Utilities.Ray.Shadow => 20,
-            _ => 5000
+            _ => 50
         };
 
         // Determine which color to use for the ray.

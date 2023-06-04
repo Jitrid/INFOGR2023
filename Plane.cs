@@ -27,49 +27,31 @@ public class Plane : Primitive
 
     public override bool HitRay(Ray ray, out Vector3 intersect)
     {
+        intersect = Vector3.Zero;
+
         float denom = Vector3.Dot(ray.Direction, Normal);
-        if (denom == 0)
-        {
-            // Parallel.
-            intersect = Vector3.Zero;
+        if (denom < float.Epsilon)
             return false;
-        }
-        float t = (Vector3.Dot(ray.Origin, Normal) - Distance) / denom;
+
+        float t = -(Vector3.Dot(ray.Origin, Normal) + Distance) / Vector3.Dot(ray.Direction, Normal);
+
         if (t < 0)
-        {
-            // Beyond the camera.
-            intersect = Vector3.Zero;
             return false;
-        }
+
         intersect = ray.Origin + t * ray.Direction;
-        return true;
-    }
-
-    public override bool IntersectsWithLight(Vector3 intersectionPoint, Vector3 lightPosition, out Vector3 direction)
-    {
-        direction = lightPosition - intersectionPoint;
-        Ray ray = new(intersectionPoint, direction, 0);
-
-        // Find the intersection point of the ray with the plane
-        if (HitRay(ray, out Vector3 intersect))
-        {
-            // Check if the intersection point is between the intersection point and the light position
-            Vector3 intersectToLight = lightPosition - intersect;
-            float distanceToLight = intersectToLight.Length;
-
-            // Check if the distance to the light is smaller than the distance to the intersection point
-            if (distanceToLight < intersectToLight.Length)
-            {
-                // The intersection point is shadowed by the sphere
-                return false;
-            }
-        }
-
         return true;
     }
 }
 
 public class CheckeredPlane : Plane
 {
-    public Vector3 GetCheckeredColor(Vector3 point) => ((int)(Math.Floor(2 * point.X) + Math.Floor(point.Z)) & 1) * Vector3.One; // create a new vector.
+    public CheckeredPlane(Vector3 normal, float distance, float specularpower, float reflectionCoefficient)
+    {
+        Normal = Vector3.Normalize(normal);
+        Distance = distance;
+        SpecularPower = specularpower;
+        ReflectionCoefficient = reflectionCoefficient;
+    }
+
+    public Vector3 GetCheckeredColor(Vector3 point) => ((int)(Math.Floor(2 * point.X) + Math.Floor(point.Z)) & 1) * Vector3.One + new Vector3(0.01f, 0.01f, 0.01f);
 }

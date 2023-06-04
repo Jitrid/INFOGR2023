@@ -28,7 +28,7 @@ public class Intersection
             if (ray.Origin == camera.Position) 
                 debug.DrawRays(camera.Position, intersectionPoint, Utilities.Ray.Primary);
         }
-
+        
         return closestPrimitive != null;
     }
 
@@ -76,20 +76,23 @@ public class Intersection
         if (closestPrimitive == null) return Vector3.UnitZ;
 
         // Ignore reflections if the primitive's reflectivity is disabled (0f).
-        if (closestPrimitive.ReflectionCoefficient != 1f)
+        if (closestPrimitive.ReflectionCoefficient == 0f)
         {
             Vector3 normal = closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 viewDirection = Vector3.Normalize(ray.Direction);
 
             if (!Shadowed(scene, debug, closestIntersectionPoint, out Vector3 lightDirection, closestPrimitive))
                 return ShadeColor(new Vector3(0.3f, 0.3f, 0.3f),
-                    lightDirection, viewDirection, normal, closestPrimitive.GetColor(), 0.7f);
+                    lightDirection, viewDirection, normal, 
+                    (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(closestIntersectionPoint) : closestPrimitive.GetColor()), 0.7f);
 
             return Vector3.Zero;
         }
-        
+
+        Vector3 point = Vector3.Zero;
+
         // Adjust for reflectivity if the primitive's reflectivity is enabled (>0f).
-        if (closestPrimitive.ReflectionCoefficient == 1f)
+        if (closestPrimitive.ReflectionCoefficient > 0f)
         {
             Vector3 surfaceNormal = closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 reflectionDirection = ReflectRay(Vector3.Normalize(ray.Direction), Vector3.Normalize(surfaceNormal));
@@ -102,15 +105,33 @@ public class Intersection
                     if (reflectPrimitive != closestPrimitive)
                     {
                         reflectedRay.MaxBounces--;
-                        color += (closestPrimitive.GetColor() * closestPrimitive.ReflectionCoefficient) * TraceRay(debug, camera, reflectedRay, scene);
+
+                        color += (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : closestPrimitive.GetColor()) * closestPrimitive.ReflectionCoefficient * TraceRay(debug, camera, reflectedRay, scene);
                         color = Utilities.ResolveOutOfBounds(color);
                     }
 
+                    point = reflectionPoint;
+                    // if (reflectionPoint == Vector3.Zero)
+                    // {
+                    //     Vector3 lightDirection = Vector3.Normalize(scene.Lights[0].Location - closestIntersectionPoint);
+                    //     color = ShadeColor(Vector3.One, lightDirection, ray.Direction, surfaceNormal,
+                    //         (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : closestPrimitive.GetColor()), 0.7f);
+                    //     color = Vector3.UnitZ * closestPrimitive.ReflectionCoefficient;
+                    // }
+                    // color = Vector3.UnitZ * closestPrimitive.ReflectionCoefficient;
+                    // TODO: fix reflection rays in debug window dat ze vrijwel allemaal naar de hoeken gaan.
                     debug.DrawRays(closestIntersectionPoint, reflectionDirection * 500, Utilities.Ray.Reflection);
                 }
             }
         }
 
+        // if (color == Vector3.Zero)
+        // {
+        //     Vector3 lightDirection = Vector3.Normalize(scene.Lights[0].Location - closestIntersectionPoint);
+        //     Vector3 normal = closestPrimitive.GetNormal(closestIntersectionPoint);
+        //     color = ShadeColor(Vector3.One, lightDirection, ray.Direction, normal,
+        //         (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(point) : closestPrimitive.GetColor()), 0.7f);
+        // }
         return color;
     }
     
@@ -139,7 +160,7 @@ public class Intersection
         Vector3 specularColor = new(k, k, k);
 
         // Combine both materials.
-        Vector3 shadedColor = radiance * ((diffuseCoefficient * diffuseColor) + (specularCoefficient * specularColor));
+        Vector3 shadedColor = (radiance * (diffuseCoefficient * diffuseColor)) + (radiance * (specularCoefficient * specularColor));
 
         // Add ambient lighting.
         shadedColor += ambientLightning;

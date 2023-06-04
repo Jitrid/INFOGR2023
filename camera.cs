@@ -13,7 +13,7 @@ public class Camera
     private readonly Surface _screen;
 
     /// <summary>
-    /// The current position of the camera (default: 0, 0, 0).
+    /// The current position of the camera.
     /// </summary>
     public Vector3 Position;
     /// <summary>
@@ -113,7 +113,7 @@ public class Camera
     public void MovementInput(KeyboardKeyEventArgs kea, float time)
     {
         // Constant to set the movement speed.
-        const float speed = 1f;
+        const float speed = 0.5f;
 
         switch (kea.Key)
         {
