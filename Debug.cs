@@ -20,9 +20,7 @@ public class Debug
     }
 
     // Must be run separately as the primitives are never drawn on their own in the main Render method.
-    public void Render() => DrawPrimitives();
-
-    private void DrawPrimitives()
+    public void DrawPrimitives()
     {
         foreach (Primitive p in _scene.Primitives)
             if (p is Sphere sphere)

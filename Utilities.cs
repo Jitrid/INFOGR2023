@@ -88,38 +88,12 @@ public class Utilities
         return (r << 16) | (g << 8) | b;
     }
 
-    public static Vector3 ShadeColor(Vector3 lightIntensity, Vector3 lightDirection, Vector3 viewDirection,
-        Vector3 normal, Vector3 diffuseColor, float r)
+    public static Vector3 ResolveOutOfBounds(Vector3 color)
     {
-        Vector3 ambientLightning = diffuseColor * new Vector3(0.3f, 0.3f, 0.3f);
+        if (color.X > 1f) color.X = 1f;
+        if (color.Y > 1f) color.Y = 1f;
+        if (color.Z > 1f) color.Z = 1f;
 
-        Vector3 radiance = lightIntensity * (1 / (r * r));
-
-        // Determine specifics for diffuse materials.
-        float dot = Vector3.Dot(normal, lightDirection);
-        if (dot < 0) // > 90dg
-            return ambientLightning;
-
-        float diffuseCoefficient = Math.Max(0, dot);
-
-        // Determine specifics for specular (glossy) materials.
-        Vector3 reflectionDirection = lightDirection - 2 * (dot) * normal;
-
-        float specularPower = 10f;
-        float specularCoefficient = (float)Math.Pow(Math.Max(0, Vector3.Dot(viewDirection, reflectionDirection)), specularPower);
-        float k = 1f;
-        Vector3 specularColor = new(k, k, k);
-
-        // Combine both materials.
-        Vector3 shadedColor = radiance * ((diffuseCoefficient * diffuseColor) + (specularCoefficient * specularColor));
-
-        // Add ambient lighting.
-        shadedColor += ambientLightning;
-
-        if (shadedColor.X > 1) shadedColor.X = 1;
-        if (shadedColor.Y > 1) shadedColor.Y = 1;
-        if (shadedColor.Z > 1) shadedColor.Z = 1;
-
-        return shadedColor;
+        return color;
     }
 }

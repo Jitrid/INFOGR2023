@@ -113,7 +113,7 @@ public class Camera
     public void MovementInput(KeyboardKeyEventArgs kea, float time)
     {
         // Constant to set the movement speed.
-        const float speed = 0.3f;
+        const float speed = 1f;
 
         switch (kea.Key)
         {

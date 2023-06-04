@@ -15,8 +15,8 @@ public class Scene
 
         // Plane
         // Primitives.Add(new CheckeredPlane());
-        Primitives.Add(new Plane(new Vector3(0f, 1f, 0f), 0.25f, new Vector3(1f, 0f, 0f),
-        new Vector3(1f, 1f, 1f), Vector3.One, 50f, 0f));
+        Primitives.Add(new Plane(new Vector3(0f, 1f, 0f), 5f, new Vector3(1f, 1f, 1f),
+            new Vector3(1f, 1f, 1f), Vector3.One, 50f, 0f));
 
         // Spheres
         Primitives.Add(new Sphere(new Vector3(0f, 1f, 6f), 3f, new Vector3(1f, 1f, 0f), 

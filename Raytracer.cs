@@ -37,7 +37,7 @@ internal class Raytracer
     public void Render()
     {
         Screen.Clear(0);
-        Debug.Render();
+        Debug.DrawPrimitives();
 
         Parallel.For(0, Screen.height, y =>
         {
@@ -48,7 +48,7 @@ internal class Raytracer
 
                 Ray viewRay = new(Camera.Position, point);
 
-                Vector3 colorV = Intersection.TraceRay(Debug, Camera, viewRay, Scene, 5);
+                Vector3 colorV = Intersection.TraceRay(Debug, Camera, viewRay, Scene, 16);
                 Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(colorV);
             });
         });
