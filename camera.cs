@@ -170,7 +170,7 @@ public class Camera
     /// </summary>
     public void ZoomInput(MouseWheelEventArgs mea)
     {
-        if (FOV - mea.OffsetY > 100 || FOV - mea.OffsetY < 0) return;
+        if (FOV - mea.OffsetY > 100 || FOV - mea.OffsetY < 1) return;
         FOV -= mea.OffsetY;
 
         UpdateCamera();

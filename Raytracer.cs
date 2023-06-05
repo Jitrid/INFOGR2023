@@ -28,7 +28,7 @@ public class Raytracer
 
         Debug = new Debug(this);
 
-        Camera = new Camera(Screen, new Vector3(0f, 1.5f, -4f));
+        Camera = new Camera(Screen, new Vector3(0f, 1.5f, 0f));
     }
 
     /// <summary>

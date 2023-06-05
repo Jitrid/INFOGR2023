@@ -15,7 +15,7 @@ public class Sphere : Primitive
         Center = center;
         Radius = radius;
         Color = color;
-        boundingBox = getBox();
+        BoundingBox = GetBox();
         DiffuseColor = diffcolor;
         SpecularColor = speccolor;
         SpecularPower = specularPower;
@@ -26,7 +26,7 @@ public class Sphere : Primitive
 
     public override Vector3 GetColor() => Color;
 
-    public override BoundingBox getBox()
+    public override BoundingBox GetBox()
     {
         Vector3 p0 = Center - new Vector3(Radius, Radius, Radius);
         Vector3 p3 = Center + new Vector3(Radius, Radius, Radius);
@@ -37,8 +37,8 @@ public class Sphere : Primitive
     {
         intersect = Vector3.Zero;
 
-        if (boundingBox == null || !boundingBox.intersectBox(ray))
-            return false;
+        // if (BoundingBox == null || !BoundingBox.intersectBox(ray))
+        //     return false;
 
         float a = Vector3.Dot(ray.Direction, ray.Direction);
         float b = 2 * (Vector3.Dot(ray.Origin, ray.Direction) - Vector3.Dot(Center, ray.Direction));
@@ -102,7 +102,7 @@ public class Triangle : Primitive
     public override Vector3 GetNormal(Vector3 point) => Normal;
     public override Vector3 GetColor() => Color;
 
-    public override BoundingBox getBox()
+    public override BoundingBox GetBox()
     {
         throw new NotImplementedException();
     }

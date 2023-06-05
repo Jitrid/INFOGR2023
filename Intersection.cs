@@ -16,11 +16,11 @@ public class Intersection
 
         foreach (Primitive primitive in raytracer.Scene.Primitives)
         {
-            if (primitive.GetType() != typeof(Triangle))
-            {
-                BoundingBox box = primitive.getBox();
-                if (!box.intersectBox(ray)) continue;
-            }
+            // if (primitive.GetType() != typeof(Triangle))
+            // {
+            //     BoundingBox box = primitive.GetBox();
+            //     if (!box.intersectBox(ray)) continue;
+            // }
 
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
@@ -49,12 +49,14 @@ public class Intersection
     /// <param name="direction">The light direction that is dynamically determined for each light source.</param>
     /// <param name="primitive">The primitive to check.</param>
     /// <returns></returns> // todo
-    public bool Shadowed(Vector3 intersection, out Vector3 direction, Primitive primitive)
+    public bool Shadowed(Vector3 intersection, out Vector3 direction, out Vector3 location, Primitive primitive)
     {
         direction = Vector3.Zero;
+        location = Vector3.Zero;
 
         foreach (Light light in raytracer.Scene.Lights)
         {
+            location = light.Location;
             direction = Vector3.Normalize(light.Location - intersection);
             Ray ray = new(intersection, direction, 0);
 
@@ -86,13 +88,14 @@ public class Intersection
         // Ignore reflections if the primitive's reflectivity is disabled (0f).
         if (closestPrimitive.ReflectionCoefficient == 0f)
         {
-            Vector3 normal = closestPrimitive.GetNormal(closestIntersectionPoint);
+            Vector3 normal = (closestPrimitive.GetType() == typeof(Plane) || closestPrimitive.GetType() == typeof(CheckeredPlane)) 
+                ? -closestPrimitive.GetNormal(closestIntersectionPoint) : closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 viewDirection = Vector3.Normalize(ray.Direction);
 
-            if (!Shadowed(closestIntersectionPoint, out Vector3 lightDirection, closestPrimitive))
-                return ShadeColor(new Vector3(0.3f, 0.3f, 0.3f),
-                    lightDirection, viewDirection, normal,
-                    (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(closestIntersectionPoint) : closestPrimitive.GetColor()), 0.7f);
+            bool shaded = Shadowed(closestIntersectionPoint, out Vector3 lightDirection, out Vector3 lightLocation, closestPrimitive);
+            return ShadeColor(new Vector3(100, 100, 100), lightDirection, viewDirection, normal, 
+                (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(closestIntersectionPoint) : closestPrimitive.GetColor()),
+                Vector3.Distance(lightLocation, closestIntersectionPoint), shaded);
 
             return Vector3.Zero;
         }
@@ -105,12 +108,12 @@ public class Intersection
             Vector3 surfaceNormal = closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 reflectionDirection = ReflectRay(Vector3.Normalize(ray.Direction), Vector3.Normalize(surfaceNormal));
 
-            Ray reflectedRay = new(closestIntersectionPoint, Vector3.Normalize(reflectionDirection), 16);
+            Ray reflectedRay = new(closestIntersectionPoint, reflectionDirection, 16);
             if (reflectedRay.MaxBounces > 0)
             {
-                if (FindClosestIntersection(reflectedRay, out Vector3 reflectionPoint, out Primitive reflectPrimitive))
+                if (FindClosestIntersection(reflectedRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
                 {
-                    if (reflectPrimitive != closestPrimitive)
+                    if (reflectedPrimitive != closestPrimitive)
                     {
                         reflectedRay.MaxBounces--;
 
@@ -119,30 +122,12 @@ public class Intersection
                         color = Utilities.ResolveOutOfBounds(color);
                     }
 
-                    point = reflectionPoint;
-                    // Console.WriteLine(reflectionPoint);
-                    if (reflectPrimitive == closestPrimitive)
-                    {
-                        Vector3 lightDirection = Vector3.Normalize(raytracer.Scene.Lights[0].Location - closestIntersectionPoint);
-                        // color = ShadeColor(Vector3.One * 1f, lightDirection, Vector3.Normalize(ray.Direction), surfaceNormal,
-                        //     (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : closestPrimitive.GetColor()), 0.7f);
-                        // Console.WriteLine(reflectionPoint);
-                        // color = Vector3.UnitZ * closestPrimitive.ReflectionCoefficient;
-                    }
-
                     // TODO: fix reflection rays in debug window dat ze vrijwel allemaal naar de hoeken gaan.
-                    // if (reflectedRay.Origin == closestIntersectionPoint) debug.DrawRays(closestIntersectionPoint, reflectionDirection * 500, Utilities.Ray.Reflection);
+                    // if (reflectedRay.Origin == closestIntersectionPoint) raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionDirection * 10, Utilities.Ray.Reflection);
                 }
             }
         }
 
-        // if (color == Vector3.Zero)
-        // {
-        //     Vector3 lightDirection = Vector3.Normalize(scene.Lights[0].Location - closestIntersectionPoint);
-        //     Vector3 normal = closestPrimitive.GetNormal(closestIntersectionPoint);
-        //     color = ShadeColor(Vector3.One, lightDirection, ray.Direction, normal,
-        //         (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(point) : closestPrimitive.GetColor()), 0.7f);
-        // }
         return color;
     }
 
@@ -155,31 +140,33 @@ public class Intersection
     /// Calculates the color of a pixel based on Phong's shading model.
     /// </summary>
     public Vector3 ShadeColor(Vector3 lightIntensity, Vector3 lightDirection, Vector3 viewDirection,
-        Vector3 normal, Vector3 diffuseColor, float r)
+        Vector3 normal, Vector3 diffuseColor, float r, bool shaded)
     {
-        Vector3 ambientLightning = diffuseColor * new Vector3(0.3f, 0.3f, 0.3f);
+        Vector3 shadedColor = Vector3.Zero;
+        Vector3 ambientLighting = diffuseColor * new Vector3(0.1f, 0.1f, 0.1f);
 
-        Vector3 radiance = lightIntensity * (1 / (r * r));
+        if (!shaded)
+        {
+            Vector3 radiance = lightIntensity / (r * r);
 
-        // Determine specifics for diffuse materials.
-        float dot = Vector3.Dot(normal, lightDirection);
-        if (dot < 0) // > 90dg
-            return ambientLightning;
+            // Determine specifics for diffuse materials.
+            float dot = Vector3.Dot(normal, lightDirection);
+            float diffuseCoefficient = Math.Max(0, dot);
+            Vector3 diffuse = diffuseCoefficient * diffuseColor;
 
-        float diffuseCoefficient = Math.Max(0, dot);
+            // Determine specifics for specular (glossy) materials.
+            Vector3 reflectionDirection = lightDirection - 2 * dot * normal;
 
-        // Determine specifics for specular (glossy) materials.
-        Vector3 reflectionDirection = lightDirection - 2 * dot * normal;
+            float specularPower = 50f;
+            float specularCoefficient = (float)Math.Pow(Math.Max(0, Vector3.Dot(viewDirection, reflectionDirection)), specularPower);
+            Vector3 specular = specularCoefficient * Vector3.One;
 
-        float specularPower = 50f;
-        float specularCoefficient = (float)Math.Pow(Math.Max(0, Vector3.Dot(viewDirection, reflectionDirection)), specularPower);
-        Vector3 specularColor = Vector3.Zero * 0.8f; // Ks
-
-        // Combine both materials.
-        Vector3 shadedColor = radiance * (diffuseCoefficient * diffuseColor) + radiance * (specularCoefficient * specularColor);
+            // Combine both materials.
+            shadedColor += radiance * (diffuse + specular);
+        }
 
         // Add ambient lighting.
-        shadedColor += ambientLightning;
+        shadedColor += ambientLighting;
 
         shadedColor = Utilities.ResolveOutOfBounds(shadedColor);
 

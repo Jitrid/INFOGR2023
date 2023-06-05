@@ -26,7 +26,7 @@ public class Plane : Primitive
     public override Vector3 GetNormal(Vector3 point) => Normal;
     public override Vector3 GetColor() => Color;
 
-    public override BoundingBox getBox()
+    public override BoundingBox GetBox()
     {
         Vector3 p0 = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
         Vector3 p3 = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
@@ -45,7 +45,8 @@ public class Plane : Primitive
         if (denom < float.Epsilon)
             return false;
 
-        float t = -(Vector3.Dot(ray.Origin, Normal) + Distance) / Vector3.Dot(ray.Direction, Normal);
+        Vector3 center = Normal * Distance;
+        float t = (Vector3.Dot(center - ray.Origin, Normal)) / denom;
 
         if (t < 0)
             return false;
