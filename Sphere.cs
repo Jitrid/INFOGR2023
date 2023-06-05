@@ -9,6 +9,9 @@ public class Sphere : Primitive
 
     public Vector3 Color { get; }
 
+    /// <summary>
+    /// Indicates the level of emission, used for area lights.
+    /// </summary>
     public Vector3 Emission;
 
     public Sphere(Vector3 center, float radius, Vector3 color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectionCoefficient, Vector3 emission)
@@ -16,7 +19,6 @@ public class Sphere : Primitive
         Center = center;
         Radius = radius;
         Color = color;
-        BoundingBox = GetBox();
         DiffuseColor = diffcolor;
         SpecularColor = speccolor;
         SpecularPower = specularPower;
@@ -29,19 +31,9 @@ public class Sphere : Primitive
 
     public override Vector3 GetColor() => Color;
 
-    public override BoundingBox GetBox()
-    {
-        Vector3 p0 = Center - new Vector3(Radius, Radius, Radius);
-        Vector3 p3 = Center + new Vector3(Radius, Radius, Radius);
-        return new BoundingBox(p0, p3);
-    }
-
     public override bool HitRay(Ray ray, out Vector3 intersect)
     {
         intersect = Vector3.Zero;
-
-        // if (BoundingBox == null || !BoundingBox.intersectBox(ray))
-        //     return false;
 
         float a = Vector3.Dot(ray.Direction, ray.Direction);
         float b = 2 * (Vector3.Dot(ray.Origin, ray.Direction) - Vector3.Dot(Center, ray.Direction));

@@ -17,9 +17,6 @@ public class Intersection
 
         foreach (Primitive primitive in raytracer.Scene.Primitives)
         {
-            // BoundingBox box = primitive.GetBox();
-            // if (!box.intersectBox(ray)) continue;
-
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
                 float distance = Vector3.Distance(ray.Origin, intersect) - 0.001f;
@@ -44,39 +41,23 @@ public class Intersection
         return closestPrimitive != null;
     }
 
-    public bool Shadowed(Vector3 light, Vector3 intersection, Primitive primitive)
-    {
-        Ray ray = new(intersection, Vector3.Normalize(light - intersection));
-
-        foreach (Primitive p in raytracer.Scene.Primitives)
-        {
-            if (p == primitive) continue;
-            if (p.HitRay(ray, out Vector3 intersect))
-            {
-                // The intersection point is shadowed by the sphere
-                if (p.GetType() == typeof(Sphere))
-                    raytracer.Debug.DrawRays(intersection, intersect, Utilities.Ray.Shadow);
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public Vector3 TraceRay(Ray ray, Vector3 mask, int bounceLimit)
     {
         Vector3 color = Vector3.Zero;
 
         FindClosestIntersection(ray, out Vector3 closestIntersectionPoint, out Primitive closestPrimitive);
 
-        if (closestPrimitive == null) return Vector3.UnitZ;
+        // Sets the sky color for the path tracer.
+        // Inside of reflection, the sky is instead perceived as black; this is intentional!
+        // Otherwise it'd be quite difficult to distinguish the mirrors from the sky, at least their top parts. 
+        if (closestPrimitive == null) return new Vector3(0.15f, 0.15f, 0.15f);
 
         // Adjust for reflectivity if the primitive's reflectivity is enabled (>0f).
         Vector3 surfaceNormal = (closestPrimitive.GetType() == typeof(Plane) || closestPrimitive.GetType() == typeof(CheckeredPlane))
                 ? -closestPrimitive.GetNormal(closestIntersectionPoint) : closestPrimitive.GetNormal(closestIntersectionPoint);
         Vector3 reflectionDirection = Vector3.Normalize(ReflectRay(ray.Direction, surfaceNormal));
 
+        // Randomly mix the reflection directio with a randomly selected double.
         Vector3 lerp = Vector3.Lerp(reflectionDirection, Uniform((float)_random.NextDouble(), (float)_random.NextDouble()), 1 - closestPrimitive.ReflectionCoefficient);
 
         if (Vector3.Dot(surfaceNormal, lerp) < 0)
@@ -91,7 +72,7 @@ public class Intersection
             if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
             {
                 bounceLimit--;
-
+                
                 if (closestPrimitive is Sphere sphere) color += sphere.Emission * mask;
                 mask *= (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(closestIntersectionPoint) : closestPrimitive.GetColor());
 
@@ -124,46 +105,4 @@ public class Intersection
     /// Calculates the corresponding reflect ray.
     /// </summary>
     public Vector3 ReflectRay(Vector3 direction, Vector3 normal) => direction - 2 * Vector3.Dot(direction, normal) * normal;
-
-    /// <summary>
-    /// Calculates the color of a pixel based on Phong's shading model.
-    /// </summary>
-    public Vector3 ShadeColor(Scene scene, Primitive closestPrimitive, Vector3 intersection, Vector3 viewDirection, Vector3 normal, Vector3 diffuseColor)
-    {
-        Vector3 shadedColor = Vector3.Zero;
-        Vector3 ambientLighting = diffuseColor * new Vector3(0.1f, 0.1f, 0.1f);
-
-        foreach (Light light in scene.Lights)
-        {
-            if (!Shadowed(light.Location, intersection, closestPrimitive))
-            {
-                Vector3 direction = Vector3.Normalize(light.Location - intersection);
-                float r = Vector3.Distance(light.Location, intersection);
-
-                Vector3 radiance = light.Intensity / (r * r);
-
-                // Determine specifics for diffuse materials.
-                float dot = Vector3.Dot(normal, direction);
-                float diffuseCoefficient = Math.Max(0, dot);
-                Vector3 diffuse = diffuseCoefficient * diffuseColor;
-
-                // Determine specifics for specular (glossy) materials.
-                Vector3 reflectionDirection = direction - 2 * dot * normal;
-
-                float specularPower = 50f;
-                float specularCoefficient = (float)Math.Pow(Math.Max(0, Vector3.Dot(viewDirection, reflectionDirection)), specularPower);
-                Vector3 specular = specularCoefficient * Vector3.One;
-
-                // Combine both materials.
-                shadedColor += radiance * (diffuse + specular);
-            }
-        }
-
-        // Add ambient lighting.
-        shadedColor += ambientLighting;
-
-        shadedColor = Utilities.ResolveOutOfBounds(shadedColor);
-
-        return shadedColor;
-    }
 }

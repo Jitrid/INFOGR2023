@@ -10,7 +10,7 @@ namespace INFOGR2023Template;
 /// </summary>
 public class Camera
 {
-    private readonly Surface _screen;
+    private readonly Raytracer _raytracer;
 
     /// <summary>
     /// The current position of the camera.
@@ -68,9 +68,9 @@ public class Camera
     public Vector3 U;
     public Vector3 V;
 
-    public Camera(Surface screen, Vector3 pos)
+    public Camera(Raytracer raytracer, Vector3 pos)
     {
-        _screen = screen;
+        _raytracer = raytracer;
         Position = pos;
 
         FOV = 70;
@@ -86,7 +86,7 @@ public class Camera
     /// </summary>
     public void UpdateCamera()
     {
-        float aspectRatio = _screen.height / (_screen.width / 2);
+        float aspectRatio = _raytracer.Screen.height / (_raytracer.Screen.width / 2);
         Matrix3 rotation = Matrix3.CreateRotationX(MathHelper.DegreesToRadians(Pitch)) * Matrix3.CreateRotationY(MathHelper.DegreesToRadians(Yaw));
 
         Direction = Vector3.Normalize(Vector3.TransformRow(Vector3.UnitZ, rotation));
@@ -104,6 +104,10 @@ public class Camera
 
         U = P1 - P0;
         V = P2 - P0;
+
+        // Clear the accumulation when the camera moves to reset the generation.
+        Array.Clear(_raytracer.Accumulation, 0, _raytracer.Accumulation.Length);
+        _raytracer.frames = 0;
     }
 
     /// <summary>
@@ -113,7 +117,7 @@ public class Camera
     public void MovementInput(KeyboardKeyEventArgs kea, float time)
     {
         // Constant to set the movement speed.
-        const float speed = 0.5f;
+        const float speed = 0.8f;
 
         switch (kea.Key)
         {

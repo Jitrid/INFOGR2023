@@ -48,9 +48,9 @@ public class Debug
         // Every <max>th amount of rays will be printed onto the debug window.
         int max = ray switch
         {
-            Utilities.Ray.Primary => 20000,
+            Utilities.Ray.Primary => 200000,
             Utilities.Ray.Shadow => 1000,
-            _ => 100
+            _ => 10000
         };
 
         // Determine which color to use for the ray.
@@ -83,8 +83,8 @@ public class Debug
                 _ => _count2 % max == 0
             })
         {
-            // _raytracer.Screen.Line(Utilities.TranslateX(_raytracer.Screen, start.X), Utilities.TranslateZ(_raytracer.Screen, start.Z),
-            //     Utilities.TranslateX(_raytracer.Screen, end.X), Utilities.TranslateZ(_raytracer.Screen, end.Z), color);
+            _raytracer.Screen.Line(Utilities.TranslateX(_raytracer.Screen, start.X), Utilities.TranslateZ(_raytracer.Screen, start.Z),
+                Utilities.TranslateX(_raytracer.Screen, end.X), Utilities.TranslateZ(_raytracer.Screen, end.Z), color);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Vector3 = OpenTK.Mathematics.Vector3;
+﻿using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template;
 
@@ -22,21 +21,24 @@ public class Raytracer
     /// </summary>
     public Camera Camera;
 
+    /// <summary>
+    /// The accumulation of previously generated colors.
+    /// </summary>
     public Vector3[] Accumulation;
-    public int samples;
-
-    public Pathtracer Pathtracer;
+    /// <summary>
+    /// How many frames (accumulations) have passed.
+    /// </summary>
+    public int frames;
 
     public Raytracer(Surface screen)
     {
         Screen = screen;
         Scene = new Scene();
+        Accumulation = new Vector3[Screen.height * Screen.width];
 
         Debug = new Debug(this);
 
-        Camera = new Camera(Screen, new Vector3(0f, 1.5f, 0f));
-        
-        Accumulation = new Vector3[Screen.height * Screen.width];
+        Camera = new Camera(this, new Vector3(0f, 1.5f, 0f));
     }
 
     /// <summary>
@@ -47,43 +49,42 @@ public class Raytracer
         Screen.Clear(0);
         Debug.DrawPrimitives();
 
-        // Define the number of threads to use
-        int numThreads = Environment.ProcessorCount;
-        int subpixels = 10;
+        // Define the number of threads to use.
+        int threads = Environment.ProcessorCount;
+        const int samples = 1;
 
-        samples++;
+        frames++;
 
-        Parallel.For(0, numThreads, threadIndex =>
+        Parallel.For(0, threads, threadIndex =>
         {
-            int startY = threadIndex * (Screen.height / numThreads);
-            int endY = startY + (Screen.height / numThreads);
+            int startY = threadIndex * (Screen.height / threads);
+            int endY = startY + (Screen.height / threads);
 
             for (int y = startY; y < endY; y++)
             {
                 for (int x = 0; x < Screen.width / 2; x++)
                 {
-                    Vector3 color = Vector3.Zero;
-                    for (int sub = 0; sub < subpixels; sub++)
+                    Vector3 mainColor = Vector3.Zero;
+                    for (int sub = 0; sub < samples; sub++)
                     {
-                        float offsetX = (float)((sub % Math.Sqrt(subpixels) + 0.5f) / Math.Sqrt(subpixels));
-                        float offsetY = (float)((sub / Math.Sqrt(subpixels) + 0.5f) / Math.Sqrt(subpixels));
+                        float offsetX = (float)((sub % Math.Sqrt(samples) + 0.5f) / Math.Sqrt(samples));
+                        float offsetY = (float)((sub / Math.Sqrt(samples) + 0.5f) / Math.Sqrt(samples));
 
                         Vector3 point = Camera.P0 + ((x + offsetX) / (Screen.width / 2f)) * Camera.U +
                                         ((y + offsetY) / Screen.height) * Camera.V;
                         point = Vector3.Normalize(point - Camera.Position);
-
                         Ray viewRay = new Ray(Camera.Position, point);
+
                         Intersection intersect = new Intersection(this);
-
-                        Vector3 color2 = intersect.TraceRay(viewRay, Vector3.One, 10);
-
-                        color += color2;
+                        mainColor += intersect.TraceRay(viewRay, Vector3.One, 10);
                     }
+                    
+                    // Add the frame's color to the accumulation of colors.
+                    // This resets when the screen is closed and/or camera movement is initiated.
+                    Accumulation[y * Screen.width + x] += mainColor / samples;
 
-                    Vector3 averagedColor = color / subpixels;
-                    Accumulation[y * Screen.width + x] += averagedColor;
-
-                    Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(Vector3.Clamp(Accumulation[y * Screen.width + x] / samples, Vector3.Zero, Vector3.One));
+                    // Set the pixel's color accordingly, cramped between 0f and 1f.
+                    Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(Vector3.Clamp(Accumulation[y * Screen.width + x] / frames, Vector3.Zero, Vector3.One));
                 }
             }
         });
@@ -92,5 +93,6 @@ public class Raytracer
         Screen.Print($"FOV: {Camera.FOV}", 15, 20, 0xffffff);
         Screen.Print($"Pitch: {Camera.Pitch}", 15, 50, 0xffffff);
         Screen.Print($"Yaw: {Camera.Yaw}", 15, 80, 0xffffff);
+        Screen.Print($"Samples: {frames}", 15, 110, 0xffffff);
     }
 }

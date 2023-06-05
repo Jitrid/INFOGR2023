@@ -67,16 +67,4 @@ public class Utilities
 
         return (r << 16) | (g << 8) | b;
     }
-
-    /// <summary>
-    /// Adjust a color vector to never go out of bounds and be restricted to a maximum of 1f (255).
-    /// </summary>
-    public static Vector3 ResolveOutOfBounds(Vector3 color)
-    {
-        if (color.X > 1f) color.X = 1f;
-        if (color.Y > 1f) color.Y = 1f;
-        if (color.Z > 1f) color.Z = 1f;
-
-        return color;
-    }
 }
