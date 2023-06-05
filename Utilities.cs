@@ -4,15 +4,19 @@ namespace INFOGR2023Template;
 
 public class Utilities
 {
+    /// <summary>
+    /// Represents the different types of rays available in the application.
+    /// </summary>
     public enum Ray
     {
         Primary,
         Shadow,
-        Reflection
+        Reflection // secondary
     }
 
     /// <summary>
     /// The amount of steps to be used for the coordinate system.
+    /// This should be increased to show more of the scene, decreased for larger primitives.
     /// </summary>
     public const int Steps = 32;
 
@@ -51,34 +55,10 @@ public class Utilities
         return (int)translatedZ;
     }
 
-    public static System.Numerics.Vector3 VectorToSystem(Vector3 input)
-    {
-        System.Numerics.Vector3 output = new()
-        {
-            X = input.X,
-            Y = input.Y,
-            Z = input.Z
-        };
-        return output;
-    }
-
-    //Nog meer onzin
-    public static Vector3 VectorToGL(System.Numerics.Vector3 input)
-    {
-        Vector3 output = new()
-        {
-            X = input.X,
-            Y = input.Y,
-            Z = input.Z
-        };
-        return output;
-    }
-
     /// <summary>
     /// Converts a vector (0-1) to RGB values in order to display colors.
     /// </summary>
     /// <param name="color"></param>
-    /// <returns></returns>
     public static int ColorToInt(Vector3 color)
     {
         int r = (int)(color.X * 255);
@@ -88,6 +68,10 @@ public class Utilities
         return (r << 16) | (g << 8) | b;
     }
 
+    /// <summary>
+    /// Adjust a color vector to never go out of bounds and be restricted to a maximum of 1f (255).
+    /// </summary>
+    /// <param name="color"></param>
     public static Vector3 ResolveOutOfBounds(Vector3 color)
     {
         if (color.X > 1f) color.X = 1f;

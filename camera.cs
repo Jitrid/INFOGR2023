@@ -77,7 +77,7 @@ public class Camera
         Pitch = 0f;
         Yaw = 0f;
 
-        // Initialize the first values of the vectors.
+        // Initializes the first values of the vectors.
         UpdateCamera();
     }
 

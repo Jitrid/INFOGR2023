@@ -13,13 +13,6 @@ public class Debug
 
     public Debug(Raytracer raytracer) => _raytracer = raytracer;
 
-    public void Render()
-    {
-        _raytracer.Screen.Line(Utilities.TranslateX(_raytracer.Screen, _raytracer.Camera.P0.X), Utilities.TranslateZ(_raytracer.Screen, _raytracer.Camera.P0.Z),
-            Utilities.TranslateX(_raytracer.Screen, _raytracer.Camera.P1.X), Utilities.TranslateZ(_raytracer.Screen, _raytracer.Camera.P1.Z), 0xffffff);
-        DrawPrimitives();
-    }
-    
     public void DrawPrimitives()
     {
         foreach (Primitive p in _raytracer.Scene.Primitives)
@@ -45,7 +38,7 @@ public class Debug
     }
 
     /// <summary>
-    /// Draw various rays on the debug window.
+    /// Draws the various rays on the debug window.
     /// </summary>
     /// <param name="start">The starting point of the ray.</param>
     /// <param name="end">The destination of the ray.</param>
@@ -56,7 +49,7 @@ public class Debug
         int max = ray switch
         {
             Utilities.Ray.Primary => 100000,
-            Utilities.Ray.Shadow => 20,
+            Utilities.Ray.Shadow => 1,
             _ => 50
         };
 
