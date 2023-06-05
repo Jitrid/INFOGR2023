@@ -15,6 +15,7 @@ namespace INFOGR2023Template
 
         public Skybox(string[] files)
         {
+            bmps = new Image<Bgra32>[files.Length];
             load(files);
         }
 
@@ -22,23 +23,41 @@ namespace INFOGR2023Template
         {
             for (int i = 0; i < files.Length; i++)
             {
+                //Console.WriteLine(files[i]);
                 bmps[i] = Image.Load<Bgra32>(files[i]);
             }            
         }
 
         public Vector3 GetColor(float x, float y)
         {
-           
+            //Console.WriteLine($"x: {x} y:{y}");
             int face;
             float skyu, skyv;
 
             getCoords(x,y,out face, out skyu, out skyv);
 
-             //𝐹(𝑢,𝑣)=lookup texel(int)(𝑢×𝑤𝑖𝑑𝑡ℎ),(int)(𝑣×ℎ𝑒𝑖𝑔ℎ𝑡))
+            int width = bmps[face].Width;
+            int height = bmps[face].Height;
 
-             Bgra32 bmpcolor = bmps[face][(int)(skyu * bmps[face].Width), (int)(skyv * bmps[face].Height)];
+            if (skyu < 0 || skyu >= width || skyv < 0 || skyv >= height)
+            {
+                // Invalid pixel coordinates, return a default color
+                return Vector3.Zero;
+            }
 
-             Vector3 color = new Vector3(bmpcolor.R / 255f, bmpcolor.G / 255f, bmpcolor.B / 255f);
+            //𝐹(𝑢,𝑣)=lookup texel(int)(𝑢×𝑤𝑖𝑑𝑡ℎ),(int)(𝑣×ℎ𝑒𝑖𝑔ℎ𝑡))
+            //Console.WriteLine($"u: {skyu} v:{skyv}");
+            int pixX = (int)(skyu * (float)(width-1));
+            int pixY = (int)(skyv * (float)(height-1));
+
+            //if (pixX <= 0 || pixY <= 0) { return Vector3.Zero; }
+            //if (pixY <= 0 || pixX >= height) {  return Vector3.Zero; }
+
+            //  Console.WriteLine($"{pixX} {pixY}");
+            
+            Bgra32 bmpcolor = bmps[face][pixX, pixY];
+
+             Vector3 color = new Vector3(bmpcolor.R / 255f, bmpcolor.G / 255f, bmpcolor.B / 255f);                                                                                                                                                          
 
              return color;
         }
@@ -56,8 +75,8 @@ namespace INFOGR2023Template
                 else
                     face = 1; // -X
 
-                skyu = v / absU;
-                skyv = u / absU;
+                skyu = u / absU;
+                skyv = v / absU;
             }
             else
             {
@@ -73,7 +92,8 @@ namespace INFOGR2023Template
             //CHANGE THIS
             // Map skyu and skyv to range [0, 1]
             skyu = (skyu + 1) * 0.5f;
-            skyv = (skyv + 1) * 0.5f;
+            
+            skyv = (float)(v - Math.Floor(v));
         }
     }
 

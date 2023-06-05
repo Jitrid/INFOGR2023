@@ -4,8 +4,20 @@ namespace INFOGR2023Template;
 
 public class Intersection
 {
+    private static string[] path = new[]
+    {
+        "../../../skybox/back.png",
+        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\bottom.png",
+        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\front.png",
+        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\left.png",
+        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\right.png",
+        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\top.png"
+
+    };
     // Necessary to access the camera, debug, and scene instances.
     public Raytracer raytracer;
+    public static Skybox sky  = new Skybox(path);
+    
     public Intersection(Raytracer raytracer) => this.raytracer = raytracer;
 
     public bool FindClosestIntersection(Ray ray, out Vector3 intersectionPoint, out Primitive closestPrimitive)
@@ -69,7 +81,12 @@ public class Intersection
 
         FindClosestIntersection(ray, out Vector3 closestIntersectionPoint, out Primitive closestPrimitive);
 
-        if (closestPrimitive == null) return Vector3.UnitZ;
+        if (closestPrimitive == null)
+        {
+            color = sky.GetColor(ray.Direction.X, ray.Direction.Y);
+            
+            return color;
+        }
 
         // Ignore reflections if the primitive's reflectivity is disabled (0f).
         if (closestPrimitive.ReflectionCoefficient == 0f)
@@ -94,6 +111,10 @@ public class Intersection
             {
                 if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
                 {
+                    if (reflectedPrimitive == null || reflectedPrimitive == closestPrimitive)
+                    {
+                        color = sky.GetColor(reflectionRay.Direction.X, reflectionRay.Direction.Y);
+                    }
                     reflectionRay.MaxBounces--;
 
                     color += (reflectedPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : reflectedPrimitive.GetColor())

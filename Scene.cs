@@ -39,7 +39,7 @@ public class Scene
         Primitives.Add(new Triangle(new Vector3(-2f, 1f, 9f), new Vector3(2f, 1, 9f), new Vector3(0f, 4f, 9f),
             new Vector3(1, 0, 0), 0f));
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 1; i++)
         {
             // Generate random coordinates within a specified range
             float xCoord = (float)random.NextDouble() * 20;

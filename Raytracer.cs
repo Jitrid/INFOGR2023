@@ -55,44 +55,44 @@ public class Raytracer
         int numThreads = Environment.ProcessorCount;
         int subpixels = 1;
 
-        Parallel.For(0, numThreads, threadIndex =>
+        //Parallel.For(0, numThreads, threadIndex =>
+        //{
+        //    int startY = threadIndex * (Screen.height / numThreads);
+        //    int endY = startY + (Screen.height / numThreads);
+
+
+        for (int y = 0; y < Screen.height; y++)
         {
-            int startY = threadIndex * (Screen.height / numThreads);
-            int endY = startY + (Screen.height / numThreads);
-           
-
-            for (int y = startY; y < endY; y++)
+            for (int x = 0; x < Screen.width / 2; x++)
             {
-                for (int x = 0; x < Screen.width / 2; x++)
-                {
-                    Vector3 color = Vector3.Zero;
-                    for (int sub = 0; sub < subpixels; sub++)
+                Vector3 color = Vector3.Zero;
+                for (int sub = 0; sub < subpixels; sub++)
                     //Parallel.For(0, subpixels, sub =>
-                    {
-                        float offsetX = (float)((sub % Math.Sqrt(subpixels) + 0.5f) / Math.Sqrt(subpixels));
-                        float offsetY = (float)((sub / Math.Sqrt(subpixels) + 0.5f) / Math.Sqrt(subpixels));
+                {
+                    float offsetX = (float)((sub % Math.Sqrt(subpixels) + 0.5f) / Math.Sqrt(subpixels));
+                    float offsetY = (float)((sub / Math.Sqrt(subpixels) + 0.5f) / Math.Sqrt(subpixels));
 
-                        Vector3 point = Camera.P0 + ((x + offsetX) / (Screen.width / 2f)) * Camera.U +
-                                        ((y + offsetY) / Screen.height) * Camera.V;
-                        point = Vector3.Normalize(point - Camera.Position);
+                    Vector3 point = Camera.P0 + ((x + offsetX) / (Screen.width / 2f)) * Camera.U +
+                                    ((y + offsetY) / Screen.height) * Camera.V;
+                    point = Vector3.Normalize(point - Camera.Position);
 
-                        Ray viewRay = new Ray(Camera.Position, point, 0);
-                        Intersection intersect = new Intersection(this);
+                    Ray viewRay = new Ray(Camera.Position, point, 0);
+                    Intersection intersect = new Intersection(this);
 
-                        Vector3 color2 = intersect.TraceRay(viewRay);
-                        color += color2;
-                        //Vector3 colorV = intersect.TraceRay(viewRay);
-                        //Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(colorV);
+                    Vector3 color2 = intersect.TraceRay(viewRay);
 
-                    }
-
-                    Vector3 averagedColor = color / subpixels;
-                    Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(averagedColor);
-
+                    color += color2;
+                    //Vector3 colorV = intersect.TraceRay(viewRay);
+                    //Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(colorV);
 
                 }
+
+                Vector3 averagedColor = color / subpixels;
+                Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(averagedColor);
+
+
             }
-        });
+        }
 
 
         sw.Stop();
