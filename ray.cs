@@ -28,8 +28,3 @@ public class Ray
         MaxBounces = bounces;
     }
 }
-
-// public class Path
-// {
-//     public 
-// }

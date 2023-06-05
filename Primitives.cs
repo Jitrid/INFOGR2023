@@ -10,8 +10,6 @@ public abstract class Primitive
     public Vector3 DiffuseColor { get; set; }
     public Vector3 SpecularColor { get; set; }
     public float SpecularPower { get; set; }
-    
-    public BoundingBox BoundingBox { get; set; } = null!;
 
     /// <summary>
     /// Determines the level of reflectivity (between 0f and 1f).
@@ -29,8 +27,6 @@ public abstract class Primitive
     /// </summary>
     /// <returns></returns>
     public abstract Vector3 GetColor();
-
-    public abstract BoundingBox GetBox();
 
     /// <summary>
     /// Indicates whether a ray has intersected with the primitive.

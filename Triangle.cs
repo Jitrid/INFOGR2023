@@ -27,12 +27,6 @@ public class Triangle : Primitive
     public override Vector3 GetNormal(Vector3 point) => Normal;
     public override Vector3 GetColor() => Color;
 
-    public override BoundingBox GetBox()
-    {
-        Vector3 p3 = new Vector3(p0.X, p2.Y, p0.Z);
-        return new BoundingBox(p3, p1);
-    }
-
     public override bool HitRay(Ray ray, out Vector3 intersect)
     {
         intersect = Vector3.Zero;

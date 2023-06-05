@@ -6,12 +6,12 @@ public class Intersection
 {
     private static string[] path = new[]
     {
-        "../../../skybox/back.png",
-        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\bottom.png",
-        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\front.png",
-        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\left.png",
-        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\right.png",
-        "C:\\Users\\Mathieu\\source\\repos\\INFOGR2023\\skybox\\top.png"
+        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\back.png",
+        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\bottom.png",
+        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\front.png",
+        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\left.png",
+        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\right.png",
+        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\top.png"
 
     };
     // Necessary to access the camera, debug, and scene instances.
@@ -28,9 +28,6 @@ public class Intersection
 
         foreach (Primitive primitive in raytracer.Scene.Primitives)
         {
-            BoundingBox box = primitive.GetBox();
-            if (!box.intersectBox(ray)) continue;
-
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
                 float distance = Vector3.Distance(ray.Origin, intersect) - 0.001f;

@@ -18,7 +18,6 @@ public class Plane : Primitive
         SpecularColor = specularcolor;
         SpecularPower = specularpower;
         ReflectionCoefficient = reflectionCoefficient;
-        //boundingBox = getBox();
     }
 
     public Plane() { }
@@ -26,20 +25,9 @@ public class Plane : Primitive
     public override Vector3 GetNormal(Vector3 point) => Normal;
     public override Vector3 GetColor() => Color;
 
-    public override BoundingBox GetBox()
-    {
-        Vector3 p0 = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-        Vector3 p3 = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-        return new BoundingBox(p0, p3);
-    }
-
     public override bool HitRay(Ray ray, out Vector3 intersect)
     {
         intersect = Vector3.Zero;
-        //if (boundingBox == null || !boundingBox.intersectBox(ray))
-        //{
-        //    return false;
-        //}
 
         float denom = Vector3.Dot(ray.Direction, Normal);
         if (denom < float.Epsilon)
