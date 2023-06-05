@@ -58,11 +58,10 @@ public class Plane : Primitive
 
 public class CheckeredPlane : Plane
 {
-    public CheckeredPlane(Vector3 normal, float distance, float specularpower, float reflectionCoefficient)
+    public CheckeredPlane(Vector3 normal, float distance, float reflectionCoefficient)
     {
         Normal = Vector3.Normalize(normal);
         Distance = distance;
-        SpecularPower = specularpower;
         ReflectionCoefficient = reflectionCoefficient;
     }
 

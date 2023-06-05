@@ -15,13 +15,11 @@ public class Light
     /// <summary>
     /// Represent their respective color values.
     /// </summary>
-    public float R, G, B;
+    public Vector3 Intensity;
 
-    public Light(Vector3 location, float red, float green, float blue)
+    public Light(Vector3 location, Vector3 intensity)
     {
         Location = location;
-        R = red;
-        G = green;
-        B = blue;
+        Intensity = intensity;
     }
 }

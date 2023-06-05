@@ -72,7 +72,7 @@ public class Sphere : Primitive
 
 public class Triangle : Primitive
 {
-    public Vector3 v1, a, b, c;
+    public Vector3 LeftCorner, RightCorner, TopCorner;
     private float dot1, dot2, dot3;
     public float Distance;
     public Vector3 Normal;
@@ -81,16 +81,16 @@ public class Triangle : Primitive
 
     public Triangle(Vector3 c1, Vector3 c2, Vector3 c3, Vector3 color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectionCoefficient)
     {
-        this.v1 = c1;
-        a = c2 - c1;
-        b = c3 - c1;
+        LeftCorner = c1;
+        RightCorner = c2 - c1;
+        TopCorner = c3 - c1;
 
-        dot1 = Vector3.Dot(a, b);
-        dot2 = Vector3.Dot(a, a);
-        dot3 = Vector3.Dot(b, b);
+        dot1 = Vector3.Dot(RightCorner, TopCorner);
+        dot2 = Vector3.Dot(RightCorner, RightCorner);
+        dot3 = Vector3.Dot(TopCorner, TopCorner);
 
-        Normal = Vector3.Normalize(Vector3.Cross(a, b));
-        Distance = -Vector3.Dot(Normal, v1);
+        Normal = Vector3.Normalize(Vector3.Cross(RightCorner, TopCorner));
+        Distance = -Vector3.Dot(Normal, LeftCorner);
 
         Color = color;
         DiffuseColor = diffcolor;
@@ -116,11 +116,11 @@ public class Triangle : Primitive
         if (denom < float.Epsilon)
             return false;
 
-        float t = -(Vector3.Dot(ray.Origin, Normal) + Distance) / Vector3.Dot(ray.Direction, Normal);
+        float t = -(Vector3.Dot(ray.Origin, Normal) + Distance) / denom;
         if (t < 0)
             return false;
 
-        intersect = ray.Origin + t * ray.Direction;
+        intersect = ray.Origin + (t - 0.01f) * ray.Direction;
 
         if (IsInTriangle(intersect))
             return true;
@@ -129,22 +129,24 @@ public class Triangle : Primitive
         return false;
     }
 
-    // TODO: Dit is volledig plagiaat. Als we dit willen gebruiken, moeten we het aanpassen. Bovenstaande functie is zelf geschreven.
     public bool IsInTriangle(Vector3 intersect)
     {
-        c = intersect - v1;
+        Vector3 w = intersect - LeftCorner;
 
-        float dot4 = Vector3.Dot(c, b);
-        float dot5 = Vector3.Dot(c, a);
+        float dot4 = Vector3.Dot(w, TopCorner);
+        float dot5 = Vector3.Dot(w, RightCorner);
 
         float denom = dot1 * dot1 - dot2 * dot3;
+
         float s = (dot1 * dot4 - dot3 * dot5) / denom;
 
-        if (s < 0) return false;
+        // if (s < 0) return false;
 
+        if (!(s >= 0)) return false;
         float t = (dot1 * dot5 - dot2 * dot4) / denom;
-        if (t < 0) return false;
+        // if (t < 0) return false;
 
+        if (!(t >= 0)) return false;
         if (s + t <= 1)
             return true;
 

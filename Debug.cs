@@ -48,9 +48,9 @@ public class Debug
         // Every <max>th amount of rays will be printed onto the debug window.
         int max = ray switch
         {
-            Utilities.Ray.Primary => 100000,
+            Utilities.Ray.Primary => 20000,
             Utilities.Ray.Shadow => 1,
-            _ => 50
+            _ => 5000
         };
 
         // Determine which color to use for the ray.
