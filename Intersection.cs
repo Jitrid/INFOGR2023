@@ -85,28 +85,26 @@ public class Intersection
         // Adjust for reflectivity if the primitive's reflectivity is enabled (>0f).
         if (closestPrimitive.ReflectionCoefficient > 0f)
         {
-            Vector3 surfaceNormal = closestPrimitive.GetNormal(closestIntersectionPoint);
+            Vector3 surfaceNormal = (closestPrimitive.GetType() == typeof(Plane) || closestPrimitive.GetType() == typeof(CheckeredPlane))
+                ? -closestPrimitive.GetNormal(closestIntersectionPoint) : closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 reflectionDirection = Vector3.Normalize(ReflectRay(ray.Direction, surfaceNormal));
 
-            Ray reflectedRay = new(closestIntersectionPoint, reflectionDirection, 3);
-            if (reflectedRay.MaxBounces > 0)
+            Ray reflectionRay = new(closestIntersectionPoint, reflectionDirection, 3);
+            if (reflectionRay.MaxBounces > 0)
             {
-                if (FindClosestIntersection(reflectedRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
+                if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
                 {
-                    if (reflectedPrimitive != closestPrimitive)
-                    {
-                        reflectedRay.MaxBounces--;
+                    reflectionRay.MaxBounces--;
 
-                        color += (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : closestPrimitive.GetColor())
-                                 * closestPrimitive.ReflectionCoefficient * TraceRay(reflectedRay);
-                    }
-                    
-                    if (reflectedRay.Origin == closestIntersectionPoint) 
+                    color += (reflectedPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : reflectedPrimitive.GetColor())
+                             * closestPrimitive.ReflectionCoefficient * TraceRay(reflectionRay);
+
+                    if (reflectionRay.Origin == closestIntersectionPoint) 
                         raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionPoint, Utilities.Ray.Reflection);
                 }
 
-                if (reflectedRay.Origin == closestIntersectionPoint && closestIntersectionPoint == Vector3.Zero)
-                    raytracer.Debug.DrawRays(closestIntersectionPoint, reflectedRay.Direction * 50, Utilities.Ray.Reflection);
+                if (reflectionRay.Origin == closestIntersectionPoint && closestIntersectionPoint == Vector3.Zero)
+                    raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionRay.Direction * 50, Utilities.Ray.Reflection);
             }
 
             return color;
