@@ -51,7 +51,7 @@ public class Raytracer
 
         // Define the number of threads to use.
         int threads = Environment.ProcessorCount;
-        const int samples = 1;
+        const int samples = 20; // adjust accordingly with your own performance.
 
         frames++;
 
@@ -78,7 +78,7 @@ public class Raytracer
                         Intersection intersect = new Intersection(this);
                         mainColor += intersect.TraceRay(viewRay, Vector3.One, 10);
                     }
-                    
+
                     // Add the frame's color to the accumulation of colors.
                     // This resets when the screen is closed and/or camera movement is initiated.
                     Accumulation[y * Screen.width + x] += mainColor / samples;
