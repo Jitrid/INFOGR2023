@@ -9,6 +9,8 @@ public class Sphere : Primitive
 
     public Vector3 Color { get; }
 
+    public BoundingBox box; 
+
     public Sphere(Vector3 center, float radius, Vector3 color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectionCoefficient)
     {
         Center = center;
@@ -18,16 +20,30 @@ public class Sphere : Primitive
         SpecularColor = speccolor;
         SpecularPower = specularPower;
         ReflectionCoefficient = reflectionCoefficient;
+        box = getBox();
+        //Console.Write(box.P0);
     }
 
     public override Vector3 GetNormal(Vector3 point) => Vector3.Normalize(point - Center);
 
     public override Vector3 GetColor() => Color;
 
+    public override BoundingBox getBox()
+    {
+        Vector3 p0 = Center  - new Vector3(Radius, Radius, Radius);
+        Vector3 p3 = Center  + new Vector3(Radius, Radius, Radius);
+        BoundingBox b = new BoundingBox(p0, p3);
+        return b;
+    }
+
     public override bool HitRay(Ray ray, out Vector3 intersect)
     {
         intersect = Vector3.Zero;
 
+        if (box == null || !box.intersectBox(ray))
+        {
+            return false;
+        }
         float a = Vector3.Dot(ray.Direction, ray.Direction);
         float b = 2 * (Vector3.Dot(ray.Origin, ray.Direction) - Vector3.Dot(Center, ray.Direction));
         float c = Vector3.Dot(Center, Center) + Vector3.Dot(ray.Origin, ray.Origin) - 2 * Vector3.Dot(Center, ray.Origin) - (Radius * Radius);
