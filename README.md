@@ -24,7 +24,7 @@ The following bonus assignments were implemented:
 ## Demo
 
 ![Logo](https://cdn.discordapp.com/attachments/1115222860064116756/1115377772576125030/image.png) 
-- The scene of our Raytracer__
+- The scene of our Raytracer  
 ![Logo](https://i.imgur.com/2PaQizy.png)
 - The scene of our Path tracer with 800 samples. this takes a long time to render so this is a reference. Expect loading times upwards of half an hour for 800 samples, as there is no performance requirement for this application.
 ## Structure
