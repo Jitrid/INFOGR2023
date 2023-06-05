@@ -5,6 +5,19 @@ namespace INFOGR2023Template;
 public class Utilities
 {
     /// <summary>
+    /// Contains the files to the sky box.
+    /// </summary>
+    public static readonly string[] Path =
+    {
+        "../../../skybox/right.png",
+        "../../../skybox/left.png",
+        "../../../skybox/top.png",
+        "../../../skybox/bottom.png",
+        "../../../skybox/front.png",
+        "../../../skybox/back.png"
+    };
+
+    /// <summary>
     /// Represents the different types of rays available in the application.
     /// </summary>
     public enum Ray
@@ -66,18 +79,5 @@ public class Utilities
         int b = (int)(color.Z * 255);
 
         return (r << 16) | (g << 8) | b;
-    }
-
-    /// <summary>
-    /// Adjust a color vector to never go out of bounds and be restricted to a maximum of 1f (255).
-    /// </summary>
-    /// <param name="color"></param>
-    public static Vector3 ResolveOutOfBounds(Vector3 color)
-    {
-        if (color.X > 1f) color.X = 1f;
-        if (color.Y > 1f) color.Y = 1f;
-        if (color.Z > 1f) color.Z = 1f;
-
-        return color;
     }
 }

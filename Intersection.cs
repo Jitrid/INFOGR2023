@@ -4,18 +4,10 @@ namespace INFOGR2023Template;
 
 public class Intersection
 {
-    private static readonly string[] _path = 
-    {
-        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\back.png",
-        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\bottom.png",
-        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\front.png",
-        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\left.png",
-        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\right.png",
-        "C:\\Users\\Data Impact\\source\\repos\\INFOGR2023\\skybox\\top.png"
-    };
     // Necessary to access the camera, debug, and scene instances.
     public Raytracer raytracer;
-    public static Skybox sky = new(_path);
+
+    public static Skybox sky = new(Utilities.Path);
 
     public Intersection(Raytracer raytracer) => this.raytracer = raytracer;
 
@@ -71,6 +63,9 @@ public class Intersection
         return false;
     }
 
+    /// <summary>
+    /// Trace a ray to determine the eventual color through reflection and Phong's shading model.
+    /// </summary>
     public Vector3 TraceRay(Ray ray)
     {
         Vector3 color = Vector3.Zero;
@@ -78,11 +73,7 @@ public class Intersection
         FindClosestIntersection(ray, out Vector3 closestIntersectionPoint, out Primitive closestPrimitive);
 
         if (closestPrimitive == null)
-        {
-            color = sky.GetColor(ray.Direction.X, ray.Direction.Y, ray.Direction.Z);
-
-            return color;
-        }
+            return sky.GetColor(ray.Direction.X, ray.Direction.Y, ray.Direction.Z);
 
         // Ignore reflections if the primitive's reflectivity is disabled (0f).
         if (closestPrimitive.ReflectionCoefficient == 0f)
@@ -107,7 +98,6 @@ public class Intersection
             {
                 if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
                 {
-
                     reflectionRay.MaxBounces--;
 
                     color += (reflectedPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : reflectedPrimitive.GetColor())
@@ -117,9 +107,7 @@ public class Intersection
                         raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionPoint, Utilities.Ray.Reflection);
                 }
                 else
-                {
                     color = sky.GetColor(reflectionRay.Direction.X, reflectionRay.Direction.Y, reflectionRay.Direction.Z);
-                }
 
                 if (reflectionRay.Origin == closestIntersectionPoint && closestIntersectionPoint == Vector3.Zero)
                     raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionRay.Direction * 50, Utilities.Ray.Reflection);
@@ -173,7 +161,7 @@ public class Intersection
         // Add ambient lighting.
         shadedColor += ambientLighting;
 
-        shadedColor = Utilities.ResolveOutOfBounds(shadedColor);
+        shadedColor = Vector3.Clamp(shadedColor, Vector3.Zero, Vector3.One);
 
         return shadedColor;
     }
