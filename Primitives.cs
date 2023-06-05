@@ -11,7 +11,7 @@ public abstract class Primitive
     public Vector3 SpecularColor { get; set; }
     public float SpecularPower { get; set; }
     
-    public BoundingBox box { get; set; }
+    public BoundingBox boundingBox { get; set; }
 
     /// <summary>
     /// Determines the level of reflectivity (between 0f and 1f).
