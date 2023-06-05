@@ -34,7 +34,6 @@ public class Raytracer
         Camera = new Camera(Screen, new Vector3(0f, 1.5f, 0f));
 
         Pathtracer = new Pathtracer(this);
-
     }
 
     /// <summary>
@@ -42,28 +41,46 @@ public class Raytracer
     /// </summary>
     public void Render()
     {
-        Stopwatch sw = Stopwatch.StartNew();
-
         Screen.Clear(0);
         Debug.DrawPrimitives();
 
-        Parallel.For(0, Screen.height, y =>
+        // Define the number of threads to use
+        int numThreads = Environment.ProcessorCount;
+        int subpixels = 2;
+
+        Parallel.For(0, numThreads, threadIndex =>
         {
-            Parallel.For (0, Screen.width/2,  x =>
+            int startY = threadIndex * (Screen.height / numThreads);
+            int endY = startY + (Screen.height / numThreads);
+
+            for (int y = startY; y < endY; y++)
             {
-                Vector3 point = Camera.P0 + ((float)x / ((float)Screen.width / 2)) * Camera.U + ((float)y / (float)Screen.height) * Camera.V;
-                point = Vector3.Normalize(point - Camera.Position);
+                for (int x = 0; x < Screen.width / 2; x++)
+                {
+                    Vector3 color = Vector3.Zero;
+                    for (int sub = 0; sub < subpixels; sub++)
+                    {
+                        float offsetX = (float)((sub % Math.Sqrt(subpixels) + 0.5f) / Math.Sqrt(subpixels));
+                        float offsetY = (float)((sub / Math.Sqrt(subpixels) + 0.5f) / Math.Sqrt(subpixels));
 
-                Ray viewRay = new(Camera.Position, point, 16);
-               Intersection intersect = new(this);
+                        Vector3 point = Camera.P0 + ((x + offsetX) / (Screen.width / 2f)) * Camera.U +
+                                        ((y + offsetY) / Screen.height) * Camera.V;
+                        point = Vector3.Normalize(point - Camera.Position);
 
-                Vector3 colorV = intersect.TraceRay(viewRay);
-                Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(colorV);
-            });
+                        Ray viewRay = new Ray(Camera.Position, point, 0);
+                        Intersection intersect = new Intersection(this);
+
+                        Vector3 color2 = intersect.TraceRay(viewRay);
+                        color += color2;
+                    }
+
+                    Vector3 averagedColor = color / subpixels;
+                    Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(averagedColor);
+                }
+            }
         });
 
-        sw.Stop();
-        Console.WriteLine(sw.ElapsedMilliseconds);
+
         // Prints useful information to the user's window.
         Screen.Print($"FOV: {Camera.FOV}", 15, 20, 0xffffff);
         Screen.Print($"Pitch: {Camera.Pitch}", 15, 50, 0xffffff);

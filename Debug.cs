@@ -83,8 +83,8 @@ public class Debug
                 _ => _count2 % max == 0
             })
         {
-            _raytracer.Screen.Line(Utilities.TranslateX(_raytracer.Screen, start.X), Utilities.TranslateZ(_raytracer.Screen, start.Z),
-                Utilities.TranslateX(_raytracer.Screen, end.X), Utilities.TranslateZ(_raytracer.Screen, end.Z), color);
+            // _raytracer.Screen.Line(Utilities.TranslateX(_raytracer.Screen, start.X), Utilities.TranslateZ(_raytracer.Screen, start.Z),
+            //     Utilities.TranslateX(_raytracer.Screen, end.X), Utilities.TranslateZ(_raytracer.Screen, end.Z), color);
         }
     }
 }

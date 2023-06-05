@@ -6,6 +6,7 @@ public class Intersection
 {
     // Necessary to access the camera, debug, and scene instances.
     public Raytracer raytracer;
+    private readonly Random _random = new();
     public Intersection(Raytracer raytracer) => this.raytracer = raytracer;
 
     public bool FindClosestIntersection(Ray ray, out Vector3 intersectionPoint, out Primitive closestPrimitive)
@@ -71,46 +72,46 @@ public class Intersection
 
         if (closestPrimitive == null) return Vector3.UnitZ;
 
-        // Ignore reflections if the primitive's reflectivity is disabled (0f).
-        if (closestPrimitive.ReflectionCoefficient == 0f)
-        {
-            Vector3 normal = (closestPrimitive.GetType() == typeof(Plane) || closestPrimitive.GetType() == typeof(CheckeredPlane)) 
-                ? -closestPrimitive.GetNormal(closestIntersectionPoint) : closestPrimitive.GetNormal(closestIntersectionPoint);
-            Vector3 viewDirection = Vector3.Normalize(ray.Direction);
-            
-            return ShadeColor(raytracer.Scene, closestPrimitive, closestIntersectionPoint, viewDirection, normal, 
-                (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(closestIntersectionPoint) : closestPrimitive.GetColor()));
-        }
-
         // Adjust for reflectivity if the primitive's reflectivity is enabled (>0f).
-        if (closestPrimitive.ReflectionCoefficient > 0f)
-        {
-            Vector3 surfaceNormal = (closestPrimitive.GetType() == typeof(Plane) || closestPrimitive.GetType() == typeof(CheckeredPlane))
+        Vector3 surfaceNormal = (closestPrimitive.GetType() == typeof(Plane) || closestPrimitive.GetType() == typeof(CheckeredPlane))
                 ? -closestPrimitive.GetNormal(closestIntersectionPoint) : closestPrimitive.GetNormal(closestIntersectionPoint);
-            Vector3 reflectionDirection = Vector3.Normalize(ReflectRay(ray.Direction, surfaceNormal));
+        Vector3 reflectionDirection = Vector3.Normalize(ReflectRay(ray.Direction, surfaceNormal));
 
-            Ray reflectionRay = new(closestIntersectionPoint, reflectionDirection, 3);
-            if (reflectionRay.MaxBounces > 0)
+        Ray reflectionRay = new(closestIntersectionPoint, reflectionDirection, 3);
+
+        Vector3 lerp = Vector3.Lerp(reflectionRay.Direction, Uniform((float)_random.NextDouble(), (float)_random.NextDouble()), 1 - closestPrimitive.ReflectionCoefficient);
+
+        if (reflectionRay.MaxBounces > 0)
+        {
+            if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
             {
-                if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
-                {
-                    reflectionRay.MaxBounces--;
+                reflectionRay.MaxBounces--;
 
-                    color += (reflectedPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : reflectedPrimitive.GetColor())
-                             * closestPrimitive.ReflectionCoefficient * TraceRay(reflectionRay);
+                color += (reflectedPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : reflectedPrimitive.GetColor())
+                         * closestPrimitive.ReflectionCoefficient * TraceRay(reflectionRay);
+                if (closestPrimitive is Sphere sphere) color += sphere.Emission;
 
-                    if (reflectionRay.Origin == closestIntersectionPoint) 
-                        raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionPoint, Utilities.Ray.Reflection);
-                }
-
-                if (reflectionRay.Origin == closestIntersectionPoint && closestIntersectionPoint == Vector3.Zero)
-                    raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionRay.Direction * 50, Utilities.Ray.Reflection);
+                if (reflectionRay.Origin == closestIntersectionPoint)
+                    raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionPoint, Utilities.Ray.Reflection);
             }
 
-            return color;
+            if (reflectionRay.Origin == closestIntersectionPoint && closestIntersectionPoint == Vector3.Zero)
+                raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionRay.Direction * 50, Utilities.Ray.Reflection);
         }
 
         return color;
+    }
+
+    // Reference: https://github.com/RobertBeckebans/OpenGL-PathTracer/blob/master/PathTracer/src/shaders/Progressive/PathTraceFrag.glsl#L397
+    public Vector3 Uniform(float u1, float u2)
+    {
+        float z = 1 - 2 * u1;
+        float r = (float)Math.Sqrt(Math.Max(0, 1 - z * z));
+        float phi = MathHelper.TwoPi * u2;
+        float x = (float)(r * MathHelper.Cos(phi));
+        float y = (float)(r * MathHelper.Sin(phi));
+
+        return new Vector3(x, y, z);
     }
 
     /// <summary>

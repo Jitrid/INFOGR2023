@@ -9,7 +9,9 @@ public class Sphere : Primitive
 
     public Vector3 Color { get; }
 
-    public Sphere(Vector3 center, float radius, Vector3 color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectionCoefficient)
+    public Vector3 Emission;
+
+    public Sphere(Vector3 center, float radius, Vector3 color, Vector3 diffcolor, Vector3 speccolor, float specularPower, float reflectionCoefficient, Vector3 emission)
     {
         Center = center;
         Radius = radius;
@@ -19,6 +21,8 @@ public class Sphere : Primitive
         SpecularColor = speccolor;
         SpecularPower = specularPower;
         ReflectionCoefficient = reflectionCoefficient;
+
+        Emission = emission;
     }
 
     public override Vector3 GetNormal(Vector3 point) => Vector3.Normalize(point - Center);
