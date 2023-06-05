@@ -44,12 +44,13 @@ public class Raytracer
     /// </summary>
     public void Render()
     {
+        Stopwatch sw = Stopwatch.StartNew();
         Screen.Clear(0);
         Debug.DrawPrimitives();
 
         // Define the number of threads to use
         int numThreads = Environment.ProcessorCount;
-        int subpixels = 10;
+        int subpixels = 200;
 
         samples++;
 
@@ -87,6 +88,9 @@ public class Raytracer
                 }
             }
         });
+
+        sw.Stop();
+        Console.WriteLine(sw.ElapsedMilliseconds/1000);
 
         // Prints useful information to the user's window.
         Screen.Print($"FOV: {Camera.FOV}", 15, 20, 0xffffff);
