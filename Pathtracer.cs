@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK.Graphics.ES11;
-using Vector3 = OpenTK.Mathematics.Vector3;
+﻿using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace INFOGR2023Template
 {
     public class Pathtracer
     {
-        private Raytracer raytracer;
-        private Intersection intersector;
+        public Raytracer raytracer;
+        public Intersection intersector;
 
         public Pathtracer(Raytracer raytracer)
         {

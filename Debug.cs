@@ -49,8 +49,8 @@ public class Debug
         int max = ray switch
         {
             Utilities.Ray.Primary => 20000,
-            Utilities.Ray.Shadow => 1,
-            _ => 5000
+            Utilities.Ray.Shadow => 1000,
+            _ => 100
         };
 
         // Determine which color to use for the ray.

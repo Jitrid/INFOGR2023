@@ -54,14 +54,14 @@ public class Sphere : Primitive
         float t1 = (float)(-b - Math.Sqrt(discriminant)) / 2 * a;
         float t2 = (float)(-b + Math.Sqrt(discriminant)) / 2 * a;
 
-        if (t1 > 0)
+        if (t1 > 0.0001f)
         {
-            intersect = ray.Origin + (t1 + 0.0001f) * ray.Direction;
+            intersect = ray.Origin + t1 * ray.Direction;
             return true;
         }
-        if (t2 > 0)
+        if (t2 > 0.0001f)
         {
-            intersect = ray.Origin + (t1 - 0.0001f) * ray.Direction;
+            intersect = ray.Origin + t2 * ray.Direction;
             return true;
         }
 

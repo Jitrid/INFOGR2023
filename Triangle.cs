@@ -78,9 +78,7 @@ public class Triangle : Primitive
         float t = (dot1 * dot5 - dot2 * dot4) / denom;
 
         if (!(t >= 0)) return false;
-        if (s + t <= 1)
-            return true;
 
-        return false;
+        return s + t <= 1;
     }
 }
