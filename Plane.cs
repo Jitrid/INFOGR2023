@@ -53,5 +53,5 @@ public class CheckeredPlane : Plane
         ReflectionCoefficient = reflectionCoefficient;
     }
 
-    public Vector3 GetCheckeredColor(Vector3 point) => ((int)(Math.Floor(2 * point.X) + Math.Floor(point.Z)) & 1) * Vector3.One + new Vector3(0.01f, 0.01f, 0.01f);
+    public Vector3 GetCheckeredColor(Vector3 point) => ((int)(Math.Floor(2 * point.X) + Math.Floor(point.Z)) & 1) * Vector3.One;
 }

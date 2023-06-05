@@ -31,6 +31,6 @@ public class Scene
         Primitives.Add(new Sphere(new Vector3(-0.8f, 1.2f, 2.5f), 0.2f, new Vector3(1f, 1f, 1f),
             new Vector3(1f, 1f, 1f), Vector3.One, 5f, 1f, Vector3.Zero));
         Primitives.Add(new Sphere(new Vector3(0.7f, 1f, 2.6f), 0.3f, new Vector3(1f, 1f, 1f),
-            new Vector3(1f, 1f, 1f), Vector3.One, 5f, 1f, Vector3.Zero));
+            new Vector3(1f, 1f, 1f), Vector3.One, 5f, 0.65f, Vector3.Zero));
     }
 }
