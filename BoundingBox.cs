@@ -77,11 +77,12 @@ namespace INFOGR2023Template
                 }
 
                 return true;
-        } 
-            
+        }
 
-        
-
+        internal void Expand(object value)
+        {
+            throw new NotImplementedException();
+        }
     }
     
     

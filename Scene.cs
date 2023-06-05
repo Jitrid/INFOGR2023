@@ -36,10 +36,10 @@ public class Scene
         Primitives.Add(new Sphere(new Vector3(2.5f, 2f, 6f), 1f, new Vector3(1f, 1f, 1f),
             new Vector3(1f, 1f, 1f), Vector3.One, 5f, 1f));
 
-        Primitives.Add(new Triangle(new Vector3(-2f, 1f, 9f), new Vector3(2f, 1, 9f), new Vector3(0f, 4f, 9f), 
-            new Vector3(1, 0, 0), new Vector3(1f, 1f, 1f), new Vector3(.89f, .63f, .5f), 50f, 0f));
+        Primitives.Add(new Triangle(new Vector3(-2f, 1f, 9f), new Vector3(2f, 1, 9f), new Vector3(0f, 4f, 9f),
+            new Vector3(1, 0, 0), 0f));
 
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 5; i++)
         {
             // Generate random coordinates within a specified range
             float xCoord = (float)random.NextDouble() * 20;

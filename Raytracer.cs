@@ -9,14 +9,17 @@ public class Raytracer
     /// The main window.
     /// </summary>
     public Surface Screen;
+
     /// <summary>
     /// The debug window (on the right) of the application.
     /// </summary>
     public Debug Debug;
+
     /// <summary>
     /// The scene that contains the primitives and light sources.
     /// </summary>
     public Scene Scene;
+
     /// <summary>
     /// The main camera of the application.
     /// </summary>
@@ -47,20 +50,32 @@ public class Raytracer
         Screen.Clear(0);
         Debug.DrawPrimitives();
 
-        Parallel.For(0, Screen.height, y =>
+        // Define the number of threads to use
+        int numThreads = Environment.ProcessorCount;
+
+        Parallel.For(0, numThreads, threadIndex =>
         {
-            Parallel.For (0, Screen.width/2,  x =>
+            int startY = threadIndex * (Screen.height / numThreads);
+            int endY = startY + (Screen.height / numThreads);
+
+            for (int y = startY; y < endY; y++)
             {
-                Vector3 point = Camera.P0 + ((float)x / ((float)Screen.width / 2)) * Camera.U + ((float)y / (float)Screen.height) * Camera.V;
-                point = Vector3.Normalize(point - Camera.Position);
+                for (int x = 0; x < Screen.width / 2; x++)
+                {
+                    Vector3 point = Camera.P0 + ((float)x / ((float)Screen.width / 2)) * Camera.U +
+                                    ((float)y / (float)Screen.height) * Camera.V;
+                    point = Vector3.Normalize(point - Camera.Position);
 
-                Ray viewRay = new(Camera.Position, point, 16);
-               Intersection intersect = new(this);
+                    Ray viewRay = new Ray(Camera.Position, point, 16);
+                    Intersection intersect = new Intersection(this);
 
-                Vector3 colorV = intersect.TraceRay(viewRay);
-                Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(colorV);
-            });
+                    Vector3 colorV = intersect.TraceRay(viewRay);
+                    Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(colorV);
+
+                }
+            }
         });
+
 
         sw.Stop();
         Console.WriteLine(sw.ElapsedMilliseconds);
