@@ -16,11 +16,8 @@ public class Intersection
 
         foreach (Primitive primitive in raytracer.Scene.Primitives)
         {
-            if (primitive.GetType() != typeof(Triangle))
-            {
-                BoundingBox box = primitive.GetBox();
-                if (!box.intersectBox(ray)) continue;
-            }
+            BoundingBox box = primitive.GetBox();
+            if (!box.intersectBox(ray)) continue;
 
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
@@ -46,13 +43,6 @@ public class Intersection
         return closestPrimitive != null;
     }
 
-    /// <summary>
-    /// // todo
-    /// </summary>
-    /// <param name="light"></param>
-    /// <param name="intersection">The closest intersection point.</param>
-    /// <param name="primitive">The primitive to check.</param>
-    /// <returns></returns> // todo
     public bool Shadowed(Vector3 light, Vector3 intersection, Primitive primitive)
     {
         Ray ray = new(intersection, Vector3.Normalize(light - intersection), 0);
@@ -63,8 +53,8 @@ public class Intersection
             if (p.HitRay(ray, out Vector3 intersect))
             {
                 // The intersection point is shadowed by the sphere
-                // if (p.GetType() == typeof(Sphere))
-                //     raytracer.Debug.DrawRays(intersection, intersect, Utilities.Ray.Shadow);
+                if (p.GetType() == typeof(Sphere))
+                    raytracer.Debug.DrawRays(intersection, intersect, Utilities.Ray.Shadow);
 
                 return true;
             }
