@@ -6,12 +6,26 @@ public class Intersection
 {
     public static bool FindClosestIntersection(Scene scene, Debug debug, Camera camera, Ray ray, out Vector3 intersectionPoint, out Primitive closestPrimitive)
     {
+
         intersectionPoint = ray.Direction * 500;
         closestPrimitive = null;
         float closestDistance = float.MaxValue;
 
+
+
         foreach (Primitive primitive in scene.Primitives)
         {
+            //if (primitive.GetType() != typeof(CheckeredPlane))
+            //{
+
+
+                BoundingBox b = primitive.getBox();
+                if (!b.intersectBox(ray))
+                {
+                    continue;
+                }
+            //}
+
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
                 float distance = Vector3.Distance(ray.Origin, intersect) - 0.001f;

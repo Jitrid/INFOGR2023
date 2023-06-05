@@ -8,6 +8,7 @@ public class Plane : Primitive
     public float Distance { get; set; }
 
     public Vector3 Color;
+    public BoundingBox box;
 
     public Plane(Vector3 normal, float distance, Vector3 color, Vector3 diffusecolor, Vector3 specularcolor, float specularpower, float reflectionCoefficient)
     {
@@ -18,6 +19,7 @@ public class Plane : Primitive
         SpecularColor = specularcolor;
         SpecularPower = specularpower;
         ReflectionCoefficient = reflectionCoefficient;
+        //box = getBox();
     }
 
     public Plane() { }
@@ -28,6 +30,10 @@ public class Plane : Primitive
     public override bool HitRay(Ray ray, out Vector3 intersect)
     {
         intersect = Vector3.Zero;
+        //if (box == null || !box.intersectBox(ray))
+        //{
+        //    return false;
+        //}
 
         float denom = Vector3.Dot(ray.Direction, Normal);
         if (denom < float.Epsilon)
@@ -40,6 +46,14 @@ public class Plane : Primitive
 
         intersect = ray.Origin + t * ray.Direction;
         return true;
+    }
+
+    public override BoundingBox getBox()
+    {
+        Vector3 p0 = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+        Vector3 p3 = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+        BoundingBox b = new BoundingBox(p0 , p3);
+        return b;
     }
 }
 
@@ -54,4 +68,11 @@ public class CheckeredPlane : Plane
     }
 
     public Vector3 GetCheckeredColor(Vector3 point) => ((int)(Math.Floor(2 * point.X) + Math.Floor(point.Z)) & 1) * Vector3.One + new Vector3(0.01f, 0.01f, 0.01f);
+    public override BoundingBox getBox()
+    {
+        Vector3 p0 = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+        Vector3 p3 = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+        BoundingBox b = new BoundingBox(p0, p3);
+        return b;
+    }
 }
