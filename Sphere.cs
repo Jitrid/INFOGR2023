@@ -37,8 +37,8 @@ public class Sphere : Primitive
     {
         intersect = Vector3.Zero;
 
-        // if (BoundingBox == null || !BoundingBox.intersectBox(ray))
-        //     return false;
+        if (BoundingBox == null || !BoundingBox.intersectBox(ray))
+            return false;
 
         float a = Vector3.Dot(ray.Direction, ray.Direction);
         float b = 2 * (Vector3.Dot(ray.Origin, ray.Direction) - Vector3.Dot(Center, ray.Direction));

@@ -39,33 +39,33 @@ public class Scene
         Primitives.Add(new Triangle(new Vector3(-2f, 1f, 9f), new Vector3(2f, 1, 9f), new Vector3(0f, 4f, 9f), 
             new Vector3(1, 0, 0), new Vector3(1f, 1f, 1f), new Vector3(.89f, .63f, .5f), 50f, 0f));
 
-        // for (int i = 0; i < 25; i++)
-        // {
-        //     // Generate random coordinates within a specified range
-        //     float xCoord = (float)random.NextDouble() * 20;
-        //     float yCoord = (float)random.NextDouble() * 5;
-        //     float zCoord = (float)random.NextDouble() * 20;
-        //
-        //     // Generate random radius within a specified range
-        //     float radius = (float)random.NextDouble() * 1;
-        //
-        //     // Generate random RGB color values
-        //     Vector3 color = new Vector3((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
-        //
-        //     // Generate random RGB diffuse color values
-        //     Vector3 diffuseColor = new Vector3((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
-        //
-        //     // Generate random RGB specular color values
-        //     Vector3 specularColor = new Vector3((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
-        //
-        //     // Generate random specular power within a specified range
-        //     float specularPower = (float)random.NextDouble() * 500;
-        //
-        //     // Generate random reflection coefficient (either 0 or 1)
-        //     float reflectionCoefficient = random.Next(2);
-        //
-        //     // Create a new sphere with the generated properties and add it to the Primitives list
-        //     Primitives.Add(new Sphere(new Vector3(xCoord, yCoord, zCoord), radius, color, diffuseColor, specularColor, specularPower, reflectionCoefficient));
-        // }
+        for (int i = 0; i < 1000; i++)
+        {
+            // Generate random coordinates within a specified range
+            float xCoord = (float)random.NextDouble() * 20;
+            float yCoord = (float)random.NextDouble() * 5;
+            float zCoord = (float)random.NextDouble() * 20;
+
+            // Generate random radius within a specified range
+            float radius = (float)random.NextDouble() * 1;
+
+            // Generate random RGB color values
+            Vector3 color = new Vector3((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
+
+            // Generate random RGB diffuse color values
+            Vector3 diffuseColor = new Vector3((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
+
+            // Generate random RGB specular color values
+            Vector3 specularColor = new Vector3((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
+
+            // Generate random specular power within a specified range
+            float specularPower = (float)random.NextDouble() * 500;
+
+            // Generate random reflection coefficient (either 0 or 1)
+            float reflectionCoefficient = random.Next(2);
+
+            // Create a new sphere with the generated properties and add it to the Primitives list
+            Primitives.Add(new Sphere(new Vector3(xCoord, yCoord, zCoord), radius, color, diffuseColor, specularColor, specularPower, reflectionCoefficient));
+        }
     }
 }
