@@ -71,7 +71,6 @@ public class Utilities
     /// <summary>
     /// Adjust a color vector to never go out of bounds and be restricted to a maximum of 1f (255).
     /// </summary>
-    /// <param name="color"></param>
     public static Vector3 ResolveOutOfBounds(Vector3 color)
     {
         if (color.X > 1f) color.X = 1f;

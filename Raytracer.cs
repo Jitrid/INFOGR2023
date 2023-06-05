@@ -22,6 +22,9 @@ public class Raytracer
     /// </summary>
     public Camera Camera;
 
+    public Vector3[] Accumulation;
+    public int samples;
+
     public Pathtracer Pathtracer;
 
     public Raytracer(Surface screen)
@@ -32,8 +35,8 @@ public class Raytracer
         Debug = new Debug(this);
 
         Camera = new Camera(Screen, new Vector3(0f, 1.5f, 0f));
-
-        Pathtracer = new Pathtracer(this);
+        
+        Accumulation = new Vector3[Screen.height * Screen.width];
     }
 
     /// <summary>
@@ -46,7 +49,9 @@ public class Raytracer
 
         // Define the number of threads to use
         int numThreads = Environment.ProcessorCount;
-        int subpixels = 2;
+        int subpixels = 10;
+
+        samples++;
 
         Parallel.For(0, numThreads, threadIndex =>
         {
@@ -67,19 +72,21 @@ public class Raytracer
                                         ((y + offsetY) / Screen.height) * Camera.V;
                         point = Vector3.Normalize(point - Camera.Position);
 
-                        Ray viewRay = new Ray(Camera.Position, point, 0);
+                        Ray viewRay = new Ray(Camera.Position, point);
                         Intersection intersect = new Intersection(this);
 
-                        Vector3 color2 = intersect.TraceRay(viewRay);
+                        Vector3 color2 = intersect.TraceRay(viewRay, Vector3.One, 10);
+
                         color += color2;
                     }
 
                     Vector3 averagedColor = color / subpixels;
-                    Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(averagedColor);
+                    Accumulation[y * Screen.width + x] += averagedColor;
+
+                    Screen.pixels[y * Screen.width + x] = Utilities.ColorToInt(Vector3.Clamp(Accumulation[y * Screen.width + x] / samples, Vector3.Zero, Vector3.One));
                 }
             }
         });
-
 
         // Prints useful information to the user's window.
         Screen.Print($"FOV: {Camera.FOV}", 15, 20, 0xffffff);

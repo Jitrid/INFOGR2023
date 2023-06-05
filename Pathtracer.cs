@@ -32,7 +32,7 @@ namespace INFOGR2023Template
                 }
 
                 Vector3 reflectD = intersector.ReflectRay(ph.GetRay(bounce).Direction, intersectPoint.Normalized());
-                r = new Ray(intersectPoint, reflectD, bounce - 1);
+                // r = new Ray(intersectPoint, reflectD, bounce - 1);
             }
 
             return new Vector3(0, 0, 1f);

@@ -17,8 +17,8 @@ public class Intersection
 
         foreach (Primitive primitive in raytracer.Scene.Primitives)
         {
-            BoundingBox box = primitive.GetBox();
-            if (!box.intersectBox(ray)) continue;
+            // BoundingBox box = primitive.GetBox();
+            // if (!box.intersectBox(ray)) continue;
 
             if (primitive.HitRay(ray, out Vector3 intersect))
             {
@@ -46,7 +46,7 @@ public class Intersection
 
     public bool Shadowed(Vector3 light, Vector3 intersection, Primitive primitive)
     {
-        Ray ray = new(intersection, Vector3.Normalize(light - intersection), 0);
+        Ray ray = new(intersection, Vector3.Normalize(light - intersection));
 
         foreach (Primitive p in raytracer.Scene.Primitives)
         {
@@ -64,7 +64,7 @@ public class Intersection
         return false;
     }
 
-    public Vector3 TraceRay(Ray ray)
+    public Vector3 TraceRay(Ray ray, Vector3 mask, int bounceLimit)
     {
         Vector3 color = Vector3.Zero;
 
@@ -77,19 +77,25 @@ public class Intersection
                 ? -closestPrimitive.GetNormal(closestIntersectionPoint) : closestPrimitive.GetNormal(closestIntersectionPoint);
         Vector3 reflectionDirection = Vector3.Normalize(ReflectRay(ray.Direction, surfaceNormal));
 
-        Ray reflectionRay = new(closestIntersectionPoint, reflectionDirection, 3);
+        Vector3 lerp = Vector3.Lerp(reflectionDirection, Uniform((float)_random.NextDouble(), (float)_random.NextDouble()), 1 - closestPrimitive.ReflectionCoefficient);
 
-        Vector3 lerp = Vector3.Lerp(reflectionRay.Direction, Uniform((float)_random.NextDouble(), (float)_random.NextDouble()), 1 - closestPrimitive.ReflectionCoefficient);
+        if (Vector3.Dot(surfaceNormal, lerp) < 0)
+            lerp = -lerp;
 
-        if (reflectionRay.MaxBounces > 0)
+        reflectionDirection = lerp;
+
+        Ray reflectionRay = new(closestIntersectionPoint, reflectionDirection);
+
+        if (bounceLimit > 0)
         {
             if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
             {
-                reflectionRay.MaxBounces--;
+                bounceLimit--;
 
-                color += (reflectedPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : reflectedPrimitive.GetColor())
-                         * closestPrimitive.ReflectionCoefficient * TraceRay(reflectionRay);
-                if (closestPrimitive is Sphere sphere) color += sphere.Emission;
+                if (closestPrimitive is Sphere sphere) color += sphere.Emission * mask;
+                mask *= (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(closestIntersectionPoint) : closestPrimitive.GetColor());
+
+                color += TraceRay(reflectionRay, mask, bounceLimit - 1);
 
                 if (reflectionRay.Origin == closestIntersectionPoint)
                     raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionPoint, Utilities.Ray.Reflection);
