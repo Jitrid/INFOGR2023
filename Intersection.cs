@@ -71,8 +71,6 @@ public class Intersection
         {
             if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
             {
-                bounceLimit--;
-                
                 if (closestPrimitive is Sphere sphere) color += sphere.Emission * mask;
                 mask *= (closestPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(closestIntersectionPoint) : closestPrimitive.GetColor());
 
