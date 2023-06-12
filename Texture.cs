@@ -1,113 +1,33 @@
-﻿using SixLabors.ImageSharp;
+﻿using OpenTK.Graphics.OpenGL;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using OpenTK.Mathematics;
 
-namespace INFOGR2023Template;
-
-// Reference for the skybox feature: https://en.wikipedia.org/wiki/Cube_mapping#Memory_addressing
-public class Skybox
+namespace Template
 {
-    /// <summary>
-    /// Stores bitmaps of the skybox textures.
-    /// </summary>
-    public Image<Bgra32>[] bmps;
-
-    public Skybox(string[] files)
+    public class Texture
     {
-        bmps = new Image<Bgra32>[files.Length];
-        Load(files);
-    }
+        // data members
+        public int id;
 
-    /// <summary>
-    /// Loads the bitmaps into the bmps array.
-    /// </summary>
-    public void Load(string[] files)
-    {
-        for (int i = 0; i < files.Length; i++)
-            bmps[i] = Image.Load<Bgra32>(files[i]);
-    }
-
-    public Vector3 GetColor(float x, float y, float z)
-    {
-        GetCoords(x, y, z, out int face, out float skyu, out float skyv);
-
-        int width = bmps[face].Width;
-        int height = bmps[face].Height;
-
-        // Invalid pixel coordinates, return a default color.
-        if (skyu < 0 || skyu >= width || skyv < 0 || skyv >= height)
-            return Vector3.Zero;
-
-        Bgra32 bmpcolor = bmps[face][(int)(skyu * (width - 1)), (int)(skyv * (height - 1))];
-
-        Vector3 color = new Vector3(bmpcolor.R / 255f, bmpcolor.G / 255f, bmpcolor.B / 255f);
-
-        return color;
-    }
-
-    public void GetCoords(float x, float y, float z, out int face, out float skyu, out float skyv)
-    {
-        float absX = Math.Abs(x);
-        float absY = Math.Abs(y);
-        float absZ = Math.Abs(z);
-
-        int isXPositive = x > 0 ? 1 : 0;
-        int isYPositive = y > 0 ? 1 : 0;
-        int isZPositive = z > 0 ? 1 : 0;
-
-        float maxAxis, uc, vc;
-
-        // Positive X
-        if (isXPositive != 0 && absX >= absY && absX >= absZ)
+        // constructor
+        public Texture(string filename)
         {
-            maxAxis = absX;
-            uc = -z;
-            vc = y;
-            face = 0;
+            if (String.IsNullOrEmpty(filename)) throw new ArgumentException(filename);
+            id = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, id);
+            // We will not upload mipmaps, so disable mipmapping (otherwise the texture will not appear).
+            // We can use GL.GenerateMipmaps() or GL.Ext.GenerateMipmaps() to create
+            // mipmaps automatically. In that case, use TextureMinFilter.LinearMipmapLinear to enable them.
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            Image<Bgra32> bmp = Image.Load<Bgra32>(filename);
+            int width = bmp.Width;
+            int height = bmp.Height;
+            int[] pixels = new int[width * height];
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                    pixels[y * width + x] = (int)bmp[x, y].Bgra;
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
         }
-        // Negative X
-        else if (isXPositive == 0 && absX >= absY && absX >= absZ)
-        {
-            maxAxis = absX;
-            uc = z;
-            vc = y;
-            face = 1;
-        }
-        // Negative Y
-        else if (isYPositive == 0 && absY >= absX && absY >= absZ)
-        {
-            maxAxis = absY;
-            uc = x;
-            vc = z;
-            face = 2;
-        }
-        // Positive Y
-        else if (isYPositive != 0 && absY >= absX && absY >= absZ)
-        {
-            maxAxis = absY;
-            uc = x;
-            vc = -z;
-            face = 3;
-        }
-        // Positive Z
-        else if (isZPositive != 0 && absZ >= absX && absZ >= absY)
-        {
-            maxAxis = absZ;
-            uc = x;
-            vc = y;
-            face = 4;
-        }
-        // Negative Z
-        else
-        {
-            maxAxis = absZ;
-            uc = -x;
-            vc = y;
-            face = 5;
-        }
-
-        // Convert range from -1 to 1 to 0 to 1.
-        skyu = 0.5f * (uc / maxAxis + 1.0f);
-        skyv = 0.5f * (vc / maxAxis + 1.0f);
     }
 }

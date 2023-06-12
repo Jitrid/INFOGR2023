@@ -1,9 +1,10 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using System.Globalization;
+using System.Runtime.InteropServices;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-
 
 // The template provides you with a window which displays a 'linear frame buffer', i.e.
 // a 1D array of pixels that represents the graphical contents of the window.
@@ -21,148 +22,94 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 // tutorial. After the tutorial you can throw away this template code, or modify it at
 // will, or maybe it simply suits your needs.
 
-namespace INFOGR2023Template
+namespace Template
 {
     public class OpenTKApp : GameWindow
     {
-        /**
-         * IMPORTANT:
-         * 
-         * Modern OpenGL (introduced in 2009) does NOT allow Immediate Mode or
-         * Fixed-Function Pipeline commands, e.g., GL.MatrixMode, GL.Begin,
-         * GL.End, GL.Vertex, GL.TexCoord, or GL.Enable certain capabilities
-         * related to the Fixed-Function Pipeline. It also REQUIRES you to use
-         * shaders.
-         * 
-         * If you want to try prehistoric OpenGL code, such as many code
-         * samples still found online, enable it below.
-         * 
-         * MacOS doesn't support prehistoric OpenGL anymore since 2018.
-         */
+
         public const bool allowPrehistoricOpenGL = false;
 
-        int screenID;            // unique integer identifier of the OpenGL texture
-        Application? app;      // instance of the application
-        bool terminated = false; // application terminates gracefully when this is true
+        static int screenID;            // unique integer identifier of the OpenGL texture
+        static MyApplication? app;       // instance of the application
+        static bool terminated = false; // application terminates gracefully when this is true
 
-        private float deltaTime;
-
-        // The following variables are only needed in Modern OpenGL
-        public int vertexArrayObject;
-        public int vertexBufferObject;
-        public int programID;
-        // All the data for the vertices interleaved in one array:
-        // - XYZ in normalized device coordinates
-        // - UV
-        readonly float[] vertices =
-        { //  X      Y     Z     U     V
-            -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, // bottom-left  2-----3 triangles:
-             1.0f, -1.0f, 0.0f, 1.0f, 1.0f, // bottom-right | \   |     012
-            -1.0f,  1.0f, 0.0f, 0.0f, 0.0f, // top-left     |   \ |     123
-             1.0f,  1.0f, 0.0f, 1.0f, 0.0f, // top-right    0-----1
-        };
-
-        /// <summary>
-        /// Indicates the current state of the cursor.
-        /// Has to be custom written because our GameWindow for some reason doesn't have it.
-        /// </summary>
-        public enum CursorState
-        {
-            Grabbed,
-            Normal
-        }
-        public CursorState State = CursorState.Normal;
+        ScreenQuad quad;
+        Shader screenShader;
 
         public OpenTKApp()
             : base(GameWindowSettings.Default, new NativeWindowSettings()
             {
-                Size = new Vector2i(1200, 600),
-                Profile = allowPrehistoricOpenGL ? ContextProfile.Compatability : ContextProfile.Core,
-                Flags = allowPrehistoricOpenGL ? ContextFlags.Default : ContextFlags.ForwardCompatible,
+                Size = new Vector2i(640, 360),
+                Profile = allowPrehistoricOpenGL ? ContextProfile.Compatability : ContextProfile.Core,  // required for fixed-function, which is probably not supported on MacOS
+                Flags = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ContextFlags.Default : ContextFlags.Debug) // enable error reporting (not supported on MacOS)
+                    | (allowPrehistoricOpenGL ? ContextFlags.Default : ContextFlags.ForwardCompatible), // required for MacOS
             })
         {
         }
+
+        public void DebugCallback(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+        {
+            Dictionary<DebugSource, string> sourceStrings = new Dictionary<DebugSource, string>
+            {
+                { DebugSource.DebugSourceApi, "API - A call to the OpenGL API" },
+                { DebugSource.DebugSourceWindowSystem, "Window System - A call to a window system API" },
+                { DebugSource.DebugSourceShaderCompiler, "Shader Compiler" },
+                { DebugSource.DebugSourceThirdParty, "Third Party - A third party application associated with OpenGL" },
+                { DebugSource.DebugSourceApplication, "Application - A call to GL.DebugMessageInsert() in this application" },
+                { DebugSource.DebugSourceOther, "Other" },
+                { DebugSource.DontCare, "Ignored" },
+            };
+            string? sourceString;
+            if (!sourceStrings.TryGetValue(source, out sourceString)) sourceString = "Unknown";
+            string? typeString = Enum.GetName(type);
+            if (typeString != null) typeString = typeString.Substring(9);
+            string? severityString = Enum.GetName(severity);
+            if (severityString != null) severityString = severityString.Substring(13);
+            Console.Error.WriteLine("OpenGL Error:\n  Source: " + sourceString + "\n  Type: " + typeString + "\n  Severity: " + severityString
+                + "\n  Message ID: " + id + "\n  Message: " + Marshal.PtrToStringAnsi(message, length) + "\n");
+        } // put a breakpoint here and inspect the stack to pinpoint where the error came from
 
         protected override void OnLoad()
         {
             base.OnLoad();
             // called during application initialization
+            Console.WriteLine("OpenGL Version: " + GL.GetString(StringName.Version) + " (" + (Profile == ContextProfile.Compatability ? "Compatibility" : Profile) + " profile)");
+            Console.WriteLine("OpenGL Renderer: " + GL.GetString(StringName.Renderer) + (GL.GetString(StringName.Vendor) == "Intel" ? " (read DiscreteGPU.txt if you have another GPU that you would like to use)" : ""));
+            // configure debug output (not supported on MacOS)
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                GL.Enable(EnableCap.DebugOutput);
+                // disable all debug messages
+                GL.DebugMessageControl(DebugSourceControl.DontCare, DebugTypeControl.DontCare, DebugSeverityControl.DontCare, 0, new int[0], false);
+                // enable selected debug messages based on source, type, and severity
+                foreach (DebugSourceControl source in new DebugSourceControl[] { DebugSourceControl.DebugSourceApi, DebugSourceControl.DebugSourceShaderCompiler })
+                {
+                    foreach (DebugTypeControl type in new DebugTypeControl[] { DebugTypeControl.DebugTypeError, DebugTypeControl.DebugTypeDeprecatedBehavior, DebugTypeControl.DebugTypeUndefinedBehavior, DebugTypeControl.DebugTypePortability })
+                    {
+                        foreach (DebugSeverityControl severity in new DebugSeverityControl[] { DebugSeverityControl.DebugSeverityHigh })
+                        {
+                            GL.DebugMessageControl(source, type, severity, 0, new int[0], true);
+                        }
+                    }
+                }
+                GL.DebugMessageCallback(DebugCallback, (IntPtr)0);
+            }
+            // prepare for rendering
             GL.ClearColor(0, 0, 0, 0);
             GL.Disable(EnableCap.DepthTest);
-
             Surface screen = new(ClientSize.X, ClientSize.Y);
-            app = new Application(screen);
-            screenID = app.Screen.GenTexture();
-            
+            app = new MyApplication(screen);
+            screenID = app.screen.GenTexture();
             if (allowPrehistoricOpenGL)
             {
                 GL.Enable(EnableCap.Texture2D);
                 GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
             }
             else
-            {   // setting up a Modern OpenGL pipeline takes a lot of code
-                // Vertex Array Object: will store the meaning of the data in the buffer
-                vertexArrayObject = GL.GenVertexArray();
-                GL.BindVertexArray(vertexArrayObject);
-                // Vertex Buffer Object: a buffer of raw data
-                vertexBufferObject = GL.GenBuffer();
-                GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
-                GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
-                // Vertex Shader
-                string shaderSource = File.ReadAllText("../../../shaders/screen_vs.glsl");
-                int vertexShader = GL.CreateShader(ShaderType.VertexShader);
-                GL.ShaderSource(vertexShader, shaderSource);
-                GL.CompileShader(vertexShader);
-                GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out int status);
-                if (status != (int)All.True)
-                {
-                    string log = GL.GetShaderInfoLog(vertexShader);
-                    throw new Exception($"Error occurred whilst compiling vertex shader ({vertexShader}):\n{log}");
-                }
-                // Fragment Shader
-                shaderSource = File.ReadAllText("../../../shaders/screen_fs.glsl");
-                int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-                GL.ShaderSource(fragmentShader, shaderSource);
-                GL.CompileShader(fragmentShader);
-                GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out status);
-                if (status != (int)All.True)
-                {
-                    string log = GL.GetShaderInfoLog(fragmentShader);
-                    throw new Exception($"Error occurred whilst compiling fragment shader ({fragmentShader}):\n{log}");
-                }
-                // Program: a set of shaders to be used together in a pipeline
-                programID = GL.CreateProgram();
-                GL.AttachShader(programID, vertexShader);
-                GL.AttachShader(programID, fragmentShader);
-                GL.LinkProgram(programID);
-                GL.GetProgram(programID, GetProgramParameterName.LinkStatus, out status);
-                if (status != (int)All.True)
-                {
-                    string log = GL.GetProgramInfoLog(programID);
-                    throw new Exception($"Error occurred whilst linking program ({programID}):\n{log}");
-                }
-                // the program contains the compiled shaders, we can delete the source
-                GL.DetachShader(programID, vertexShader);
-                GL.DetachShader(programID, fragmentShader);
-                GL.DeleteShader(vertexShader);
-                GL.DeleteShader(fragmentShader);
-                // send all the following draw calls through this pipeline
-                GL.UseProgram(programID);
-                // tell the VAO which part of the VBO data should go to each shader input
-                int location = GL.GetAttribLocation(programID, "vPosition");
-                GL.EnableVertexAttribArray(location);
-                GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
-                location = GL.GetAttribLocation(programID, "vUV");
-                GL.EnableVertexAttribArray(location);
-                GL.VertexAttribPointer(location, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
-                // connect the texture to the shader uniform variable
-                GL.ActiveTexture(TextureUnit.Texture0);
-                GL.BindTexture(TextureTarget.Texture2D, screenID);
-                GL.Uniform1(GL.GetUniformLocation(programID, "pixels"), 0);
+            {
+                quad = new ScreenQuad();
+                screenShader = new Shader("../../../shaders/screen_vs.glsl", "../../../shaders/screen_fs.glsl");
             }
-            // Register events to adjust the camera based on mouse and keyboard input.
-            this.KeyDown += kea => app.Raytracer.Camera.MovementInput(kea, deltaTime);
-
             app.Init();
         }
         protected override void OnUnload()
@@ -176,7 +123,6 @@ namespace INFOGR2023Template
             base.OnResize(e);
             // called upon window resize. Note: does not change the size of the pixel buffer.
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
-
             if (allowPrehistoricOpenGL)
             {
                 GL.MatrixMode(MatrixMode.Projection);
@@ -184,41 +130,17 @@ namespace INFOGR2023Template
                 GL.Ortho(-1.0, 1.0, -1.0, 1.0, 0.0, 4.0);
             }
         }
-
-        // called once per frame; app logic
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
-
-            deltaTime = (float)e.Time;
-
-            KeyboardState? keyboard = KeyboardState;
+            // called once per frame; app logic
+            var keyboard = KeyboardState;
             if (keyboard[Keys.Escape]) terminated = true;
         }
-
-        protected override void OnMouseDown(MouseButtonEventArgs mea)
-        {
-            State = mea.Button switch
-            {
-                MouseButton.Left => CursorState.Grabbed,
-                MouseButton.Right => CursorState.Normal,
-                _ => State
-            };
-        }
-
-        protected override void OnMouseMove(MouseMoveEventArgs mea)
-        {
-            if (app == null) return;
-            if (State == CursorState.Grabbed)
-                app.Raytracer.Camera.RotationInput(mea);
-        }
-        protected override void OnMouseWheel(MouseWheelEventArgs mea) => app?.Raytracer.Camera.ZoomInput(mea);
-
-        // called once per frame; render
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-
+            // called once per frame; render
             if (app != null) app.Tick();
             if (terminated)
             {
@@ -228,36 +150,48 @@ namespace INFOGR2023Template
             // convert MyApplication.screen to OpenGL texture
             if (app != null)
             {
+                GL.ClearColor(Color4.Black);
+                GL.Disable(EnableCap.DepthTest);
                 GL.BindTexture(TextureTarget.Texture2D, screenID);
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                               app.Screen.width, app.Screen.height, 0,
+                               app.screen.width, app.screen.height, 0,
                                PixelFormat.Bgra,
-                               PixelType.UnsignedByte, app.Screen.pixels
+                               PixelType.UnsignedByte, app.screen.pixels
                              );
-                // draw screen filling quad
                 if (allowPrehistoricOpenGL)
                 {
+                    GL.Enable(EnableCap.Texture2D);
+                    GL.Color3(1.0f, 1.0f, 1.0f);
+                    // draw screen filling quad
+                    GL.MatrixMode(MatrixMode.Modelview);
+                    GL.LoadIdentity();
+                    GL.MatrixMode(MatrixMode.Projection);
+                    GL.LoadIdentity();
                     GL.Begin(PrimitiveType.Quads);
                     GL.TexCoord2(0.0f, 1.0f); GL.Vertex2(-1.0f, -1.0f);
                     GL.TexCoord2(1.0f, 1.0f); GL.Vertex2(1.0f, -1.0f);
                     GL.TexCoord2(1.0f, 0.0f); GL.Vertex2(1.0f, 1.0f);
                     GL.TexCoord2(0.0f, 0.0f); GL.Vertex2(-1.0f, 1.0f);
                     GL.End();
+                    GL.Disable(EnableCap.Texture2D);
                 }
                 else
                 {
-                    GL.BindVertexArray(vertexArrayObject);
-                    GL.UseProgram(programID);
-                    GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+                    quad.Render(screenShader, screenID);
                 }
+                // prepare for generic OpenGL rendering
+                GL.Enable(EnableCap.DepthTest);
+                GL.Clear(ClearBufferMask.DepthBufferBit);
+                // do OpenGL rendering
+                app.RenderGL();
             }
-            
             // tell OpenTK we're done rendering
             SwapBuffers();
         }
         public static void Main()
         {
             // entry point
+            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
             using OpenTKApp app = new();
             app.RenderFrequency = 30.0;
             app.Run();

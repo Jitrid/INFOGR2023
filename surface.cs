@@ -1,8 +1,8 @@
-﻿using OpenTK.Graphics.OpenGL;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using OpenTK.Graphics.OpenGL;
 
-namespace INFOGR2023Template
+namespace Template
 {
     public class Surface
     {

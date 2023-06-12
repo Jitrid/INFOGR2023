@@ -2,20 +2,20 @@
 
 #version 330
  
-// shader input
-in vec3 vPosition;		// vertex position in normalized device coordinates
-in vec2 vUV;			// vertex uv coordinate
+// shader inputs
+in vec3 vertexPositionObject;		// vertex position in Object Space
+									// this shader assumes Object Space is identical to Screen Space
+in vec2 vertexUV;					// vertex uv texture coordinates
 
-// shader output
-out vec2 uv;				
+// shader output, will be interpolated from vertices to fragments
+out vec2 uv;						// vertex uv texture coordinates (pass-through)
  
 // vertex shader
 void main()
 {
-	// forward vertex position; will be interpolated for each fragment
-	// no transformation needed because the user already provided NDC
-	gl_Position = vec4(vPosition, 1.0);
+	// vertex position already in Screen Space so no transformation needed
+	gl_Position = vec4(vertexPositionObject, 1.0);
 
-	// forward vertex uv coordinate; will be interpolated for each fragment
-	uv = vUV;
+	// pass the uv coordinate
+	uv = vertexUV;
 }
