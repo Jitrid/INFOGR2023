@@ -1,5 +1,7 @@
 
 # Ray and Path Tracer
+Please find a properly formatted version of our readme at https://github.com/Jitrid/INFOGR2023/ for ease of reading
+
 
 INFO GR 2023 assignment by Robin Schenkels (2602032) and Mathieu Chappin (9669280) at Utrecht University. Includes the first SHA assignment.
 
@@ -24,7 +26,7 @@ The following bonus assignments were implemented:
 ## Demo
 
 ![Logo](https://cdn.discordapp.com/attachments/1115222860064116756/1115377772576125030/image.png) 
-- The scene of our Raytracer  
+- The scene of our Raytracer
 ![Logo](https://i.imgur.com/2PaQizy.png)
 - The scene of our Path tracer with 800 samples. this takes a long time to render so this is a reference. Expect loading times upwards of half an hour for 800 samples, as there is no performance requirement for this application.
 ## Structure
@@ -32,6 +34,10 @@ Our Application class solely initializes the raytracer, and runs its render meth
 ## Acknowledgements
 We have used materials in our code, if something was borrowed, credits will be available in a comment along the code.
 The skybox was generated using [wwwtyro](https://tools.wwwtyro.net/space-3d/index.html)
+
+
+## Path Tracer
+To clarify, we have implemented a path tracer according to the SHA assignment #1. We have uploaded one ZIP with two different ZIPs in it: one for the regular ray tracer, and one with the path tracer. The path tracer includes several bonus features that the ray tracer does not, which has been highlighted in this readme.md. Furthermore, we have not implemented GPU shaders and thus our path tracer can be rather slow; be prepared to sit down a bit while letting the program render, and be left astonished by the results. :)
 
 
 

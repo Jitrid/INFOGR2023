@@ -45,7 +45,7 @@ public class Intersection
 
     public bool Shadowed(Vector3 light, Vector3 intersection, Primitive primitive)
     {
-        Ray ray = new(intersection, Vector3.Normalize(light - intersection), 0);
+        Ray ray = new(intersection, Vector3.Normalize(light - intersection));
 
         foreach (Primitive p in raytracer.Scene.Primitives)
         {
@@ -66,7 +66,7 @@ public class Intersection
     /// <summary>
     /// Trace a ray to determine the eventual color through reflection and Phong's shading model.
     /// </summary>
-    public Vector3 TraceRay(Ray ray)
+    public Vector3 TraceRay(Ray ray, int bounceLimit)
     {
         Vector3 color = Vector3.Zero;
 
@@ -93,15 +93,13 @@ public class Intersection
                 ? -closestPrimitive.GetNormal(closestIntersectionPoint) : closestPrimitive.GetNormal(closestIntersectionPoint);
             Vector3 reflectionDirection = Vector3.Normalize(ReflectRay(ray.Direction, surfaceNormal));
 
-            Ray reflectionRay = new(closestIntersectionPoint, reflectionDirection, 3);
-            if (reflectionRay.MaxBounces > 0)
+            Ray reflectionRay = new(closestIntersectionPoint, reflectionDirection);
+            if (bounceLimit > 0)
             {
                 if (FindClosestIntersection(reflectionRay, out Vector3 reflectionPoint, out Primitive reflectedPrimitive))
                 {
-                    reflectionRay.MaxBounces--;
-
                     color += (reflectedPrimitive is CheckeredPlane plane ? plane.GetCheckeredColor(reflectionPoint) : reflectedPrimitive.GetColor())
-                             * closestPrimitive.ReflectionCoefficient * TraceRay(reflectionRay);
+                             * closestPrimitive.ReflectionCoefficient * TraceRay(reflectionRay, bounceLimit - 1);
 
                     if (reflectionRay.Origin == closestIntersectionPoint)
                         raytracer.Debug.DrawRays(closestIntersectionPoint, reflectionPoint, Utilities.Ray.Reflection);
