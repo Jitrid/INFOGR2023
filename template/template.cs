@@ -22,7 +22,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 // tutorial. After the tutorial you can throw away this template code, or modify it at
 // will, or maybe it simply suits your needs.
 
-namespace Rasterization;
+namespace Rasterization.Template;
 
 public class OpenTKApp : GameWindow
 {
@@ -30,7 +30,7 @@ public class OpenTKApp : GameWindow
     public const bool allowPrehistoricOpenGL = false;
 
     static int screenID;            // unique integer identifier of the OpenGL texture
-    static Application? app;       // instance of the application
+    static Program? app;       // instance of the application
     static bool terminated = false; // application terminates gracefully when this is true
 
     ScreenQuad quad;
@@ -98,7 +98,7 @@ public class OpenTKApp : GameWindow
         GL.ClearColor(0, 0, 0, 0);
         GL.Disable(EnableCap.DepthTest);
         Surface screen = new(ClientSize.X, ClientSize.Y);
-        app = new Application(screen);
+        app = new Program(screen);
         screenID = app.screen.GenTexture();
         if (allowPrehistoricOpenGL)
         {

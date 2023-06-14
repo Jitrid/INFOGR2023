@@ -2,7 +2,7 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace Rasterization;
+namespace Rasterization.Template;
 
 public class Surface
 {
@@ -25,8 +25,8 @@ public class Surface
         height = bmp.Height;
         pixels = new int[width * height];
         for (int y = 0; y < height; y++)
-        for (int x = 0; x < width; x++)
-            pixels[y * width + x] = (int)bmp[x, y].Bgra;
+            for (int x = 0; x < width; x++)
+                pixels[y * width + x] = (int)bmp[x, y].Bgra;
     }
     // create an OpenGL texture
     public int GenTexture()
@@ -52,8 +52,8 @@ public class Surface
         int srcheight = height;
         int dstwidth = target.width;
         int dstheight = target.height;
-        if ((srcwidth + x) > dstwidth) srcwidth = dstwidth - x;
-        if ((srcheight + y) > dstheight) srcheight = dstheight - y;
+        if (srcwidth + x > dstwidth) srcwidth = dstwidth - x;
+        if (srcheight + y > dstheight) srcheight = dstheight - y;
         if (x < 0)
         {
             src -= x;
@@ -66,7 +66,7 @@ public class Surface
             srcheight += y;
             y = 0;
         }
-        if ((srcwidth > 0) && (srcheight > 0))
+        if (srcwidth > 0 && srcheight > 0)
         {
             dst += x + dstwidth * y;
             for (int v = 0; v < srcheight; v++)
@@ -99,15 +99,15 @@ public class Surface
     {
         int dest = y1 * width;
         for (int y = y1; y <= y2; y++, dest += width) for (int x = x1; x <= x2; x++)
-        {
-            pixels[dest + x] = c;
-        }
+            {
+                pixels[dest + x] = c;
+            }
     }
     // helper function for line clipping
     int OUTCODE(int x, int y)
     {
         int xmin = 0, ymin = 0, xmax = width - 1, ymax = height - 1;
-        return ((x < xmin) ? 1 : ((x > xmax) ? 2 : 0)) + ((y < ymin) ? 4 : ((y > ymax) ? 8 : 0));
+        return (x < xmin ? 1 : x > xmax ? 2 : 0) + (y < ymin ? 4 : y > ymax ? 8 : 0);
     }
     // draw a line, clipped to the window
     public void Line(int x1, int y1, int x2, int y2, int c)
@@ -122,7 +122,7 @@ public class Surface
             else
             {
                 int x = 0, y = 0;
-                int co = (c0 > 0) ? c0 : c1;
+                int co = c0 > 0 ? c0 : c1;
                 if ((co & 8) > 0) { x = x1 + (x2 - x1) * (ymax - y1) / (y2 - y1); y = ymax; }
                 else if ((co & 4) > 0) { x = x1 + (x2 - x1) * (ymin - y1) / (y2 - y1); y = ymin; }
                 else if ((co & 2) > 0) { y = y1 + (y2 - y1) * (xmax - x1) / (x2 - x1); x = xmax; }
@@ -137,11 +137,11 @@ public class Surface
             if (x2 < x1) { (x2, x1) = (x1, x2); (y2, y1) = (y1, y2); }
             int l = x2 - x1;
             if (l == 0) return;
-            int dy = ((y2 - y1) * 8192) / l;
+            int dy = (y2 - y1) * 8192 / l;
             y1 *= 8192;
             for (int i = 0; i < l; i++)
             {
-                pixels[x1++ + (y1 / 8192) * width] = c;
+                pixels[x1++ + y1 / 8192 * width] = c;
                 y1 += dy;
             }
         }
@@ -150,7 +150,7 @@ public class Surface
             if (y2 < y1) { (x2, x1) = (x1, x2); (y2, y1) = (y1, y2); }
             int l = y2 - y1;
             if (l == 0) return;
-            int dx = ((x2 - x1) * 8192) / l;
+            int dx = (x2 - x1) * 8192 / l;
             x1 *= 8192;
             for (int i = 0; i < l; i++)
             {
@@ -162,7 +162,7 @@ public class Surface
     // plot a single pixel
     public void Plot(int x, int y, int c)
     {
-        if ((x >= 0) && (y >= 0) && (x < width) && (y < height))
+        if (x >= 0 && y >= 0 && x < width && y < height)
         {
             pixels[x + y * width] = c;
         }
@@ -178,19 +178,19 @@ public class Surface
             for (int i = 0; i < 256; i++) fontRedir[i] = 0;
             for (int i = 0; i < ch.Length; i++)
             {
-                int l = (int)ch[i];
+                int l = ch[i];
                 fontRedir[l & 255] = i;
             }
         }
         for (int i = 0; i < t.Length; i++)
         {
-            int f = fontRedir[(int)t[i] & 255];
+            int f = fontRedir[t[i] & 255];
             int dest = x + i * 12 + y * width;
             int src = f * 12;
             for (int v = 0; v < font.height; v++, src += font.width, dest += width) for (int u = 0; u < 12; u++)
-            {
-                if ((font.pixels[src + u] & 0xffffff) != 0) pixels[dest + u] = c;
-            }
+                {
+                    if ((font.pixels[src + u] & 0xffffff) != 0) pixels[dest + u] = c;
+                }
         }
     }
 }

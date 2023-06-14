@@ -13,6 +13,7 @@ public class Texture
         if (string.IsNullOrEmpty(filename)) throw new ArgumentException(filename);
         ID = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, ID);
+
         // We will not upload mipmaps, so disable mipmapping (otherwise the texture will not appear).
         // We can use GL.GenerateMipmaps() or GL.Ext.GenerateMipmaps() to create
         // mipmaps automatically. In that case, use TextureMinFilter.LinearMipmapLinear to enable them.
@@ -28,6 +29,7 @@ public class Texture
         for (int x = 0; x < width; x++)
             pixels[y * width + x] = (int)bmp[x, y].Bgra;
 
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 
+            width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
     }
 }

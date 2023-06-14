@@ -1,9 +1,10 @@
 using System.Diagnostics;
 using OpenTK.Mathematics;
+using Rasterization.Template;
 
 namespace Rasterization;
 
-class Application
+class Program
 {
     // member variables
     public Surface screen;                  // background surface for printing etc.
@@ -18,7 +19,7 @@ class Application
     readonly bool useRenderTarget = true;   // required for post processing
 
     // constructor
-    public Application(Surface screen)
+    public Program(Surface screen)
     {
         this.screen = screen;
     }

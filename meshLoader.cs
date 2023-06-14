@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+using Rasterization.Template;
 
 namespace Rasterization;
 
@@ -110,9 +111,9 @@ public class MeshLoader
                     break;
             }
         }
-        mesh.vertices = objVertices.ToArray();
-        mesh.triangles = objTriangles.ToArray();
-        mesh.quads = objQuads.ToArray();
+        mesh.Vertices = objVertices.ToArray();
+        mesh.Triangles = objTriangles.ToArray();
+        mesh.Quads = objQuads.ToArray();
         vertices.Clear();
         normals.Clear();
         texCoords.Clear();
