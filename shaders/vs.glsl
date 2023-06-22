@@ -4,6 +4,7 @@
 in vec3 vertexPositionObject;	// vertex position in Object Space
 in vec3 vertexNormalObject;		// vertex normal in Object Space
 in vec2 vertexUV;				// vertex uv texture coordinates
+
 uniform mat4 objectToScreen;
 uniform mat4 objectToWorld;
 
