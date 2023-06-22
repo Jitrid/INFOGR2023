@@ -22,13 +22,12 @@ public class ScreenQuad
         {
             VAO = GL.GenVertexArray();
             GL.BindVertexArray(VAO);
-            GL.ObjectLabel(ObjectLabelIdentifier.VertexArray, VAO, -1, "VAO for ScreenQuad");
+
             // prepare VBO for quad rendering
             GL.GenBuffers(1, out VBO);
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-            GL.ObjectLabel(ObjectLabelIdentifier.Buffer, VBO, -1, "VBO for ScreenQuad");
+
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(4 * 5 * 4), _vertices, BufferUsageHint.StaticDraw);
-            // VBO contains vertices in correct order so no EBO needed
         }
     }
 

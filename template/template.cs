@@ -33,13 +33,16 @@ public class OpenTKApp : GameWindow
     static Program? app;       // instance of the application
     static bool terminated = false; // application terminates gracefully when this is true
 
+    private float deltaTime;
+
     ScreenQuad quad;
     Shader screenShader;
 
     public OpenTKApp()
         : base(GameWindowSettings.Default, new NativeWindowSettings()
         {
-            Size = new Vector2i(640, 360),
+            Title = "The ultimate rasterizer",
+            Size = new Vector2i(1280, 720),
             Profile = allowPrehistoricOpenGL ? ContextProfile.Compatability : ContextProfile.Core,  // required for fixed-function, which is probably not supported on MacOS
             Flags = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ContextFlags.Default : ContextFlags.Debug) // enable error reporting (not supported on MacOS)
                     | (allowPrehistoricOpenGL ? ContextFlags.Default : ContextFlags.ForwardCompatible), // required for MacOS
@@ -72,6 +75,7 @@ public class OpenTKApp : GameWindow
     protected override void OnLoad()
     {
         base.OnLoad();
+
         // called during application initialization
         Console.WriteLine("OpenGL Version: " + GL.GetString(StringName.Version) + " (" + (Profile == ContextProfile.Compatability ? "Compatibility" : Profile) + " profile)");
         Console.WriteLine("OpenGL Renderer: " + GL.GetString(StringName.Renderer) + (GL.GetString(StringName.Vendor) == "Intel" ? " (read DiscreteGPU.txt if you have another GPU that you would like to use)" : ""));
@@ -99,7 +103,7 @@ public class OpenTKApp : GameWindow
         GL.Disable(EnableCap.DepthTest);
         Surface screen = new(ClientSize.X, ClientSize.Y);
         app = new Program(screen);
-        screenID = app.screen.GenTexture();
+        screenID = app.Screen.GenTexture();
         if (allowPrehistoricOpenGL)
         {
             GL.Enable(EnableCap.Texture2D);
@@ -110,6 +114,9 @@ public class OpenTKApp : GameWindow
             quad = new ScreenQuad();
             screenShader = new Shader("../../../shaders/screen_vs.glsl", "../../../shaders/screen_fs.glsl");
         }
+        // Register events to adjust the camera based on mouse and keyboard input.
+        this.KeyDown += kea => app.Camera.MovementInput(kea, deltaTime);
+
         app.Init();
     }
     protected override void OnUnload()
@@ -133,8 +140,10 @@ public class OpenTKApp : GameWindow
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
         base.OnUpdateFrame(e);
-        // called once per frame; app logic
-        var keyboard = KeyboardState;
+
+        deltaTime = (float)e.Time;
+
+        KeyboardState? keyboard = KeyboardState;
         if (keyboard[Keys.Escape]) terminated = true;
     }
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -154,9 +163,9 @@ public class OpenTKApp : GameWindow
             GL.Disable(EnableCap.DepthTest);
             GL.BindTexture(TextureTarget.Texture2D, screenID);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                app.screen.width, app.screen.height, 0,
+                app.Screen.width, app.Screen.height, 0,
                 PixelFormat.Bgra,
-                PixelType.UnsignedByte, app.screen.pixels
+                PixelType.UnsignedByte, app.Screen.pixels
             );
             if (allowPrehistoricOpenGL)
             {
