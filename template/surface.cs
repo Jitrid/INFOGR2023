@@ -38,11 +38,6 @@ public class Surface
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
         return id;
     }
-    // clear the surface
-    public void Clear(int c)
-    {
-        for (int s = width * height, p = 0; p < s; p++) pixels[p] = c;
-    }
     // copy the surface to another surface
     public void CopyTo(Surface target, int x = 0, int y = 0)
     {

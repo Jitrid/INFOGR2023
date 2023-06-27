@@ -1,71 +1,82 @@
-using System.Diagnostics;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using Rasterization.Template;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Rasterization;
 
 class Program
 {
     // member variables
-    public Surface Screen;                  // background surface for printing etc.
+    public Surface Screen;                          // background surface for printing etc.
     public Camera Camera;
-    Mesh? teapot, floor;                    // meshes to draw using OpenGL
-    float a = 0;                            // teapot rotation angle
-    readonly Stopwatch timer = new();       // timer for measuring frame duration
-    Shader? shader;                         // shader to use for rendering
-    Shader? postproc;                       // shader to use for post processing
-    Texture? wood;                          // texture to use for rendering
-    RenderTarget? target;                   // intermediate render target
-    ScreenQuad? quad;                       // screen filling quad for post processing
-    readonly bool useRenderTarget = true;   // required for post processing
+
+    private Mesh? teapot, floor;                    // meshes to draw using OpenGL
+    private Shader? shader;                         // shader to use for rendering
+    private Shader? postproc;                       // shader to use for post processing
+    private Texture? wood, bluerock;                // texture to use for rendering
+    private RenderTarget? target;                   // intermediate render target
+    private ScreenQuad? quad;                       // screen filling quad for post processing
+    private readonly bool useRenderTarget = true;   // required for post processing
+
+    // light sources
+    private bool triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt;
+    private bool lightsEnabled = true;
+    private readonly Light[] lights =
+    {
+        new(new Vector3(20f, 50f, 0), new Vector3(250f)),
+         new(new Vector3(-20f, 50f, 0f), new Vector3(250f))
+    };
 
     // constructor
-    public Program(Surface screen)
-    {
-        Screen = screen;
+    public Program(Surface screen) => Screen = screen;
 
-        Camera = new Camera(0, -14.5f, 0);
-    }
     // initialize
     public void Init()
     {
-        // load teapot
-        teapot = new Mesh("../../../assets/teapot.obj");
-        floor = new Mesh("../../../assets/floor.obj");
-        // initialize stopwatch
-        timer.Reset();
-        timer.Start();
-        // create shaders
+        Camera = new Camera(10f, 10f, 20f);
+
+        // textures
+        wood = new Texture("../../../assets/wood.jpg");
+        bluerock = new Texture("../../../assets/bluerock.jpg");
+
+        // meshes
+        Matrix4 teapotMatrix = Matrix4.CreateTranslation(new Vector3(0, 0.5f, 0));
+        teapot = new Mesh("../../../assets/teapot.obj", teapotMatrix, wood);
+
+        Matrix4 floorMatrix = Matrix4.CreateScale(new Vector3(5f, 0.1f, 5f));
+        floor = new Mesh("../../../assets/floor.obj", floorMatrix, bluerock);
+
+        // shaders
         shader = new Shader("../../../shaders/vs.glsl", "../../../shaders/fs.glsl");
         postproc = new Shader("../../../shaders/vs_post.glsl", "../../../shaders/fs_post.glsl");
-        // load a texture
-        wood = new Texture("../../../assets/wood.jpg");
-        // create the render target
+
+        // the render target
         if (useRenderTarget) target = new RenderTarget(Screen.width, Screen.height);
         quad = new ScreenQuad();
     }
 
     // tick for background surface
-    public void Tick()
-    {
-        Screen.Clear(0);
-    }
+    public void Tick() {}
 
     // tick for OpenGL rendering code
     public void RenderGL()
     {
-        a = 0; // disable rotation.
+        Matrix4 worldToCamera = Camera.Load(); // camera
+        Matrix4 cameraToScreen = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(60.0f), // viewport
+            (float)Screen.width/Screen.height, .1f, 1000);
 
-        // prepare matrix for vertex shader
-        Matrix4 teapotObjectToWorld = Matrix4.CreateScale(0.5f) * Matrix4.CreateFromAxisAngle(new Vector3(0, 1, 0), a);
-        Matrix4 floorObjectToWorld = Matrix4.CreateScale(4.0f) * Matrix4.CreateFromAxisAngle(new Vector3(0, 1, 0), a);
-        Matrix4 worldToCamera = Camera.Load();
-        Matrix4 cameraToScreen = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(60.0f), (float)Screen.width/Screen.height, .1f, 1000);
+        GL.UseProgram(shader!.ProgramID);
+        for (int i = 0; i < lights.Length; i++)
+        {
+            shader.SetVec3($"lights[{i}].Position", lights[i].Position);
+            shader.SetVec3($"lights[{i}].Color", 
+                (triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt ? GenerateDisco() : lights[i].Color) * 20 / (lights.Length * 2));
+        }
 
-        // update rotation
-        // a += 0.001f * frameDuration;
-        // float doublePi = 2 * MathF.PI;
-        // if (a > doublePi) a -= doublePi;
+        shader.SetVec3("cameraPosition", Camera.Position);
 
         if (useRenderTarget && target != null && quad != null)
         {
@@ -75,8 +86,8 @@ class Program
             // render scene to render target
             if (shader != null && wood != null)
             {
-                teapot?.Render(shader, teapotObjectToWorld * worldToCamera * cameraToScreen, teapotObjectToWorld, wood);
-                floor?.Render(shader, floorObjectToWorld * worldToCamera * cameraToScreen, floorObjectToWorld, wood);
+                teapot?.Render(shader, worldToCamera, cameraToScreen);
+                floor?.Render(shader, worldToCamera, cameraToScreen);
             }
         
             // render quad
@@ -89,9 +100,51 @@ class Program
             // render scene directly to the screen
             if (shader != null && wood != null)
             {
-                teapot?.Render(shader, teapotObjectToWorld * worldToCamera * cameraToScreen, teapotObjectToWorld, wood);
-                floor?.Render(shader, floorObjectToWorld * worldToCamera * cameraToScreen, floorObjectToWorld, wood);
+                teapot?.Render(shader, worldToCamera, cameraToScreen);
+                floor?.Render(shader, worldToCamera, cameraToScreen);
             }
         }
+    }
+
+    /// <summary>
+    /// Generate the disco effect based on random integers.
+    /// </summary>
+    /// <returns></returns>
+    public Vector3 GenerateDisco()
+    {
+        Random rnd = new();
+
+        return new Vector3(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256));
+    }
+
+    public void AdjustLights(KeyboardKeyEventArgs kea)
+    {
+        switch (kea.Key)
+        {
+            case Keys.Q:
+            {
+                lightsEnabled = !lightsEnabled;
+
+                for (int i = 0; i < lights.Length; i++)
+                {
+                    // Save the current colour in order to enable it later on.
+                    if (!lightsEnabled) lights[i].PreviousColor = lights[i].Color;
+                    lights[i].Color = lightsEnabled ? lights[i].PreviousColor : Vector3.Zero;
+                    triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt = false;
+                }
+
+                break;
+            }
+            case Keys.E:
+                if (!lightsEnabled) break;
+                triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt = !triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt;
+                break;
+        }
+    }
+
+    public void KeyboardInput(KeyboardKeyEventArgs kea)
+    {
+        AdjustLights(kea);
+        Camera.MovementInput(kea);
     }
 }

@@ -3,7 +3,7 @@
 #version 330
  
 // shader inputs
-in vec3 vertexPositionObject;		// vertex position in Object Space
+in vec3 vertexPosition;		// vertex position in Object Space
 									// this shader assumes Object Space is identical to Screen Space
 in vec2 vertexUV;					// vertex uv texture coordinates
 
@@ -14,7 +14,7 @@ out vec2 uv;						// vertex uv texture coordinates (pass-through)
 void main()
 {
 	// vertex position already in Screen Space so no transformation needed
-	gl_Position = vec4(vertexPositionObject, 1.0);
+	gl_Position = vec4(vertexPosition, 1.0);
 
 	// pass the uv coordinate
 	uv = vertexUV;

@@ -73,39 +73,26 @@ public class MeshLoader
                             objTriangles.Add(objTriangle);
                             break;
                         case 5:
-                            if (OpenTKApp.allowPrehistoricOpenGL)
+                            // arbitrary split into two triangles
+                            int p0 = ParseFaceParameter(parameters[1]);
+                            int p1 = ParseFaceParameter(parameters[2]);
+                            int p2 = ParseFaceParameter(parameters[3]);
+                            int p3 = ParseFaceParameter(parameters[4]);
+                            Mesh.ObjTriangle objTriangle1 = new()
                             {
-                                Mesh.ObjQuad objQuad = new()
-                                {
-                                    Index0 = ParseFaceParameter(parameters[1]),
-                                    Index1 = ParseFaceParameter(parameters[2]),
-                                    Index2 = ParseFaceParameter(parameters[3]),
-                                    Index3 = ParseFaceParameter(parameters[4])
-                                };
-                                objQuads.Add(objQuad);
-                            }
-                            else
+                                Index0 = p0,
+                                Index1 = p1,
+                                Index2 = p2,
+                            };
+                            Mesh.ObjTriangle objTriangle2 = new()
                             {
-                                // arbitrary split into two triangles
-                                int p0 = ParseFaceParameter(parameters[1]);
-                                int p1 = ParseFaceParameter(parameters[2]);
-                                int p2 = ParseFaceParameter(parameters[3]);
-                                int p3 = ParseFaceParameter(parameters[4]);
-                                Mesh.ObjTriangle objTriangle1 = new()
-                                {
-                                    Index0 = p0,
-                                    Index1 = p1,
-                                    Index2 = p2,
-                                };
-                                Mesh.ObjTriangle objTriangle2 = new()
-                                {
-                                    Index0 = p2,
-                                    Index1 = p3,
-                                    Index2 = p0,
-                                };
-                                objTriangles.Add(objTriangle1);
-                                objTriangles.Add(objTriangle2);
-                            }
+                                Index0 = p2,
+                                Index1 = p3,
+                                Index2 = p0,
+                            };
+                            objTriangles.Add(objTriangle1);
+                            objTriangles.Add(objTriangle2);
+                            
                             break;
                     }
                     break;

@@ -26,26 +26,32 @@ namespace Rasterization.Template;
 
 public class OpenTKApp : GameWindow
 {
+    private static int screenID;       // unique integer identifier of the OpenGL texture
+    private static Program? app;       // instance of the application
+    private static bool terminated;    // application terminates gracefully when this is true
 
-    public const bool allowPrehistoricOpenGL = false;
+    private ScreenQuad quad = null!;
+    private Shader screenShader = null!;
 
-    static int screenID;            // unique integer identifier of the OpenGL texture
-    static Program? app;       // instance of the application
-    static bool terminated = false; // application terminates gracefully when this is true
-
-    private float deltaTime;
-
-    ScreenQuad quad;
-    Shader screenShader;
+    /// <summary>
+    /// Indicates the current state of the cursor.
+    /// Has to be custom written because our GameWindow for some reason doesn't have it.
+    /// </summary>
+    public enum CursorState
+    {
+        Grabbed,
+        Normal
+    }
+    public CursorState State = CursorState.Normal;
 
     public OpenTKApp()
         : base(GameWindowSettings.Default, new NativeWindowSettings()
         {
             Title = "The ultimate rasterizer",
             Size = new Vector2i(1280, 720),
-            Profile = allowPrehistoricOpenGL ? ContextProfile.Compatability : ContextProfile.Core,  // required for fixed-function, which is probably not supported on MacOS
+            Profile = ContextProfile.Core,  // required for fixed-function, which is probably not supported on MacOS
             Flags = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ContextFlags.Default : ContextFlags.Debug) // enable error reporting (not supported on MacOS)
-                    | (allowPrehistoricOpenGL ? ContextFlags.Default : ContextFlags.ForwardCompatible), // required for MacOS
+                    | ContextFlags.ForwardCompatible, // required for MacOS
         })
     {
     }
@@ -92,11 +98,11 @@ public class OpenTKApp : GameWindow
                 {
                     foreach (DebugSeverityControl severity in new DebugSeverityControl[] { DebugSeverityControl.DebugSeverityHigh })
                     {
-                        GL.DebugMessageControl(source, type, severity, 0, new int[0], true);
+                        GL.DebugMessageControl(source, type, severity, 0, Array.Empty<int>(), true);
                     }
                 }
             }
-            GL.DebugMessageCallback(DebugCallback, (IntPtr)0);
+            // GL.DebugMessageCallback(DebugCallback, (IntPtr)0);
         }
         // prepare for rendering
         GL.ClearColor(0, 0, 0, 0);
@@ -104,18 +110,12 @@ public class OpenTKApp : GameWindow
         Surface screen = new(ClientSize.X, ClientSize.Y);
         app = new Program(screen);
         screenID = app.Screen.GenTexture();
-        if (allowPrehistoricOpenGL)
-        {
-            GL.Enable(EnableCap.Texture2D);
-            GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
-        }
-        else
-        {
-            quad = new ScreenQuad();
-            screenShader = new Shader("../../../shaders/screen_vs.glsl", "../../../shaders/screen_fs.glsl");
-        }
+
+        quad = new ScreenQuad();
+        screenShader = new Shader("../../../shaders/screen_vs.glsl", "../../../shaders/screen_fs.glsl");
+        
         // Register events to adjust the camera based on mouse and keyboard input.
-        this.KeyDown += kea => app.Camera.MovementInput(kea, deltaTime);
+        KeyDown += kea => app.KeyboardInput(kea);
 
         app.Init();
     }
@@ -130,22 +130,32 @@ public class OpenTKApp : GameWindow
         base.OnResize(e);
         // called upon window resize. Note: does not change the size of the pixel buffer.
         GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
-        if (allowPrehistoricOpenGL)
-        {
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            GL.Ortho(-1.0, 1.0, -1.0, 1.0, 0.0, 4.0);
-        }
     }
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
         base.OnUpdateFrame(e);
 
-        deltaTime = (float)e.Time;
-
         KeyboardState? keyboard = KeyboardState;
         if (keyboard[Keys.Escape]) terminated = true;
     }
+
+    protected override void OnMouseDown(MouseButtonEventArgs mea)
+    {
+        State = mea.Button switch
+        {
+            MouseButton.Left => CursorState.Grabbed,
+            MouseButton.Right => CursorState.Normal,
+            _ => State
+        };
+    }
+
+    protected override void OnMouseMove(MouseMoveEventArgs mea)
+    {
+        if (app == null) return;
+        if (State == CursorState.Grabbed)
+            app.Camera.MouseInput(mea);
+    }
+
     protected override void OnRenderFrame(FrameEventArgs e)
     {
         base.OnRenderFrame(e);
@@ -167,27 +177,9 @@ public class OpenTKApp : GameWindow
                 PixelFormat.Bgra,
                 PixelType.UnsignedByte, app.Screen.pixels
             );
-            if (allowPrehistoricOpenGL)
-            {
-                GL.Enable(EnableCap.Texture2D);
-                GL.Color3(1.0f, 1.0f, 1.0f);
-                // draw screen filling quad
-                GL.MatrixMode(MatrixMode.Modelview);
-                GL.LoadIdentity();
-                GL.MatrixMode(MatrixMode.Projection);
-                GL.LoadIdentity();
-                GL.Begin(PrimitiveType.Quads);
-                GL.TexCoord2(0.0f, 1.0f); GL.Vertex2(-1.0f, -1.0f);
-                GL.TexCoord2(1.0f, 1.0f); GL.Vertex2(1.0f, -1.0f);
-                GL.TexCoord2(1.0f, 0.0f); GL.Vertex2(1.0f, 1.0f);
-                GL.TexCoord2(0.0f, 0.0f); GL.Vertex2(-1.0f, 1.0f);
-                GL.End();
-                GL.Disable(EnableCap.Texture2D);
-            }
-            else
-            {
-                quad.Render(screenShader, screenID);
-            }
+
+            quad.Render(screenShader, screenID);
+            
             // prepare for generic OpenGL rendering
             GL.Enable(EnableCap.DepthTest);
             GL.Clear(ClearBufferMask.DepthBufferBit);

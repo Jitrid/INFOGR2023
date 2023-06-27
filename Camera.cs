@@ -6,61 +6,84 @@ namespace Rasterization;
 
 public class Camera
 {
-    private float x, y, z;
+    private float x, y, z; 
+    public Vector3 Position;
+    private float pitch, yaw;
 
     public Camera(float x, float y, float z)
     {
         this.x = x; 
         this.y = y;
         this.z = z;
+        Position = new Vector3(x, y, z);
+        pitch = 0.0f;
+        yaw = -90.0f;
     }
 
     public Matrix4 Load()
     {
-        Matrix4 translation = Matrix4.CreateTranslation(new Vector3(x, y, z));
-        Matrix4 rotation = Matrix4.CreateFromAxisAngle(new Vector3(1, 0, 0), MathF.PI / 2);
-        
-        return translation * rotation;
+        Vector3 front;
+        front.X = MathF.Cos(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
+        front.Y = MathF.Sin(MathHelper.DegreesToRadians(pitch));
+        front.Z = MathF.Sin(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
+        front = Vector3.Normalize(front);
+
+        return Matrix4.LookAt(new Vector3(x, y, z), new Vector3(x, y, z) + front, Vector3.UnitY);
     }
 
     /// <summary>
     /// Moves the camera on one of the axis based on certain key binds.
     /// </summary>
-    /// <param name="time">The frame's "delta time" to determine performance and generalize the effect for all systems.</param>
-    public void MovementInput(KeyboardKeyEventArgs kea, float time)
+    public void MovementInput(KeyboardKeyEventArgs kea)
     {
         // Constant to set the movement speed.
-        const float speed = 1f;
-        time = 1f;
+        const float speed = 0.5f;
 
         switch (kea.Key)
         {
             // forwards
             case Keys.W or Keys.Up:
-                z += speed * time;
+                z -= speed;
                 break;
             // backwards
             case Keys.S or Keys.Down:
-                z -= speed * time;
-                break;
-            // left
-            case Keys.A or Keys.Left:
-                x += speed * time;
+                z += speed;
                 break;
             // right
             case Keys.D or Keys.Right:
-                x -= speed * time;
+                x += speed;
+                break;
+            // left
+            case Keys.A or Keys.Left:
+                x -= speed;
                 break;
             // up
             case Keys.Space:
-                y -= speed * time;
+                y += speed;
                 break;
             // down
             case Keys.LeftShift:
-                y += speed * time;
+                y -= speed;
                 break;
         }
 
-        Load();
+        Position = new Vector3(x, y, z);
+        Console.WriteLine(Position);
+    }
+
+    /// <summary>
+    /// Rotates the camera accordingly based on mouse movement.
+    /// </summary>
+    public void MouseInput(MouseMoveEventArgs mea)
+    {
+        const float sensitvity = 0.1f;
+
+        yaw += mea.DeltaX * sensitvity;
+        pitch += mea.DeltaY * sensitvity;
+
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
     }
 }
