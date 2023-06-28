@@ -28,19 +28,19 @@ class Program
         Camera = new Camera(10f, 10f, 20f);
 
         // textures
-        wood = new Texture("../../../assets/wood.jpg");
-        bluerock = new Texture("../../../assets/bluerock.jpg");
+        wood = new Texture("../../../assets/textures/wood.jpg");
+        bluerock = new Texture("../../../assets/textures/bluerock.jpg");
 
         // meshes
         Matrix4 teapotMatrix = Matrix4.CreateTranslation(new Vector3(0, 0.5f, 0));
-        teapot = new Mesh("../../../assets/teapot.obj", teapotMatrix, wood);
+        teapot = new Mesh("../../../assets/objects/teapot.obj", teapotMatrix, wood);
 
         Matrix4 floorMatrix = Matrix4.CreateScale(new Vector3(5f, 0.1f, 5f));
-        floor = new Mesh("../../../assets/floor.obj", floorMatrix, bluerock);
+        floor = new Mesh("../../../assets/objects/floor.obj", floorMatrix, bluerock);
 
         // shaders
-        shader = new Shader("../../../shaders/vs.glsl", "../../../shaders/fs.glsl");
-        postproc = new Shader("../../../shaders/postproc/vs_post.glsl", "../../../shaders/postproc/fs_post.glsl");
+        shader = new Shader("../../../shaders/scene_vs.glsl", "../../../shaders/scene_fs.glsl");
+        postproc = new Shader("../../../shaders/postproc/post_vs.glsl", "../../../shaders/postproc/post_fs.glsl");
 
         // the render target
         if (useRenderTarget) target = new RenderTarget(Screen.width, Screen.height);
