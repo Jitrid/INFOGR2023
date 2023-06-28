@@ -50,21 +50,5 @@ public class Shader
     // Methods to set uniform variables of specific data types.
     public void SetVec3(string name, Vector3 value) => GL.Uniform3(GL.GetUniformLocation(ProgramID, name), value);
     public void SetFloat(string name, float value) => GL.Uniform1(GL.GetUniformLocation(ProgramID, name), value);
-}
-
-public struct Light
-{
-    public Vector3 Position;
-    public Vector3 Color;
-    /// <summary>
-    /// Temporary variable to store the colour while the lights are off.
-    /// </summary>
-    public Vector3 PreviousColor;
-
-    public Light(Vector3 position, Vector3 color)
-    {
-        Position = position; 
-        Color = color;
-        PreviousColor = Vector3.Zero;
-    }
+    public void SetInt(string name, int value) => GL.Uniform1(GL.GetUniformLocation(ProgramID, name), value);
 }

@@ -1,7 +1,6 @@
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using Rasterization.Template;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
@@ -9,9 +8,9 @@ namespace Rasterization;
 
 class Program
 {
-    // member variables
-    public Surface Screen;                          // background surface for printing etc.
+    public Surface Screen;
     public Camera Camera;
+    public Light Light = new();
 
     private Mesh? teapot, floor;                    // meshes to draw using OpenGL
     private Shader? shader;                         // shader to use for rendering
@@ -20,17 +19,7 @@ class Program
     private RenderTarget? target;                   // intermediate render target
     private ScreenQuad? quad;                       // screen filling quad for post processing
     private readonly bool useRenderTarget = true;   // required for post processing
-
-    // light sources
-    private bool triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt;
-    private bool lightsEnabled = true;
-    private readonly Light[] lights =
-    {
-        new(new Vector3(20f, 50f, 0), new Vector3(250f)),
-         new(new Vector3(-20f, 50f, 0f), new Vector3(250f))
-    };
-
-    // constructor
+    
     public Program(Surface screen) => Screen = screen;
 
     // initialize
@@ -51,7 +40,7 @@ class Program
 
         // shaders
         shader = new Shader("../../../shaders/vs.glsl", "../../../shaders/fs.glsl");
-        postproc = new Shader("../../../shaders/vs_post.glsl", "../../../shaders/fs_post.glsl");
+        postproc = new Shader("../../../shaders/postproc/vs_post.glsl", "../../../shaders/postproc/fs_post.glsl");
 
         // the render target
         if (useRenderTarget) target = new RenderTarget(Screen.width, Screen.height);
@@ -69,12 +58,14 @@ class Program
             (float)Screen.width/Screen.height, .1f, 1000);
 
         GL.UseProgram(shader!.ProgramID);
+        Lightsource[] lights = Light.Lights;
         for (int i = 0; i < lights.Length; i++)
         {
             shader.SetVec3($"lights[{i}].Position", lights[i].Position);
             shader.SetVec3($"lights[{i}].Color", 
-                (triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt ? GenerateDisco() : lights[i].Color) * 20 / (lights.Length * 2));
+                Light.TriggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt ? Light.GenerateDisco() : lights[i].Color);
         }
+        shader.SetInt("lightsCount", lights.Length);
 
         shader.SetVec3("cameraPosition", Camera.Position);
 
@@ -106,45 +97,9 @@ class Program
         }
     }
 
-    /// <summary>
-    /// Generate the disco effect based on random integers.
-    /// </summary>
-    /// <returns></returns>
-    public Vector3 GenerateDisco()
-    {
-        Random rnd = new();
-
-        return new Vector3(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256));
-    }
-
-    public void AdjustLights(KeyboardKeyEventArgs kea)
-    {
-        switch (kea.Key)
-        {
-            case Keys.Q:
-            {
-                lightsEnabled = !lightsEnabled;
-
-                for (int i = 0; i < lights.Length; i++)
-                {
-                    // Save the current colour in order to enable it later on.
-                    if (!lightsEnabled) lights[i].PreviousColor = lights[i].Color;
-                    lights[i].Color = lightsEnabled ? lights[i].PreviousColor : Vector3.Zero;
-                    triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt = false;
-                }
-
-                break;
-            }
-            case Keys.E:
-                if (!lightsEnabled) break;
-                triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt = !triggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt;
-                break;
-        }
-    }
-
     public void KeyboardInput(KeyboardKeyEventArgs kea)
     {
-        AdjustLights(kea);
+        Light.AdjustLights(kea);
         Camera.MovementInput(kea);
     }
 }

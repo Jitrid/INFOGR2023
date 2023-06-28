@@ -13,7 +13,8 @@ in vec4 normalWorld;                // fragment normal in World Space
 in vec2 uv;                         // fragment uv texture coordinates
 
 uniform vec3 cameraPosition;
-uniform Light lights[2];
+uniform int lightsCount;            // how many lights are in the scene.
+uniform Light lights[10];           // the array of the light sources - maximum set to 1000 as it must be a constant.
 uniform sampler2D diffuseTexture;
 
 out vec4 fragmentColor;
@@ -30,7 +31,7 @@ void main()
     vec3 ambientLighting = vec3(0.1) * diffuseColor;
     
     // Apply Phong for all light sources.
-    for (int i = 0; i < 2; i++ )
+    for (int i = 0; i < lightsCount; i++ )
     {
         Light light = lights[i];
 

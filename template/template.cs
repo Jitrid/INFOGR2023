@@ -112,7 +112,7 @@ public class OpenTKApp : GameWindow
         screenID = app.Screen.GenTexture();
 
         quad = new ScreenQuad();
-        screenShader = new Shader("../../../shaders/screen_vs.glsl", "../../../shaders/screen_fs.glsl");
+        screenShader = new Shader("../../../shaders/other/screen_vs.glsl", "../../../shaders/other/screen_fs.glsl");
         
         // Register events to adjust the camera based on mouse and keyboard input.
         KeyDown += kea => app.KeyboardInput(kea);

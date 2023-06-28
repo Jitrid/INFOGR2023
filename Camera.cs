@@ -68,7 +68,6 @@ public class Camera
         }
 
         Position = new Vector3(x, y, z);
-        Console.WriteLine(Position);
     }
 
     /// <summary>
