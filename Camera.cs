@@ -7,8 +7,11 @@ namespace Rasterization;
 public class Camera
 {
     private float x, y, z; 
+
     public Vector3 Position;
     public Vector3 Front;
+    public Vector3 Up;
+
     private float pitch, yaw;
 
     public Camera(float x, float y, float z)
@@ -17,10 +20,16 @@ public class Camera
         this.y = y;
         this.z = z;
         Position = new Vector3(x, y, z);
+
+        Up = Vector3.UnitY;
+
         pitch = 0.0f;
         yaw = -90.0f;
     }
 
+    /// <summary>
+    /// Updates the camera front direction based on rotation input.
+    /// </summary>
     public Matrix4 Load()
     {
         Front.X = MathF.Cos(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
@@ -28,7 +37,7 @@ public class Camera
         Front.Z = MathF.Sin(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
         Front = Vector3.Normalize(Front);
 
-        return Matrix4.LookAt(Position, Position + Front, Vector3.UnitY);
+        return Matrix4.LookAt(Position, Position + Front, Up);
     }
 
     /// <summary>

@@ -4,7 +4,10 @@ using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Rasterization;
 
-public struct Lightsource
+/// <summary>
+/// Represents an idividual light source in the scene.
+/// </summary>
+public struct LightSource
 {
     public Vector3 Position;
     public Vector3 Color;
@@ -13,7 +16,7 @@ public struct Lightsource
     /// </summary>
     public Vector3 PreviousColor;
 
-    public Lightsource(Vector3 position, Vector3 color)
+    public LightSource(Vector3 position, Vector3 color)
     {
         Position = position;
         Color = color;
@@ -21,24 +24,26 @@ public struct Lightsource
     }
 }
 
+/// <summary>
+/// A general utilities class for the light sources.
+/// </summary>
 public class Light
 {
-    public bool TriggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt;
-    public bool LightsEnabled = true;
-    public readonly Lightsource[] Lights =
+    public static bool TriggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt;
+    public static bool LightsEnabled = true;
+    public static readonly LightSource[] Lights =
     {
-        new(new Vector3(-10f, 40f, -50f), new Vector3(750f)),
-        new(new Vector3(0, 50f, 20f), new Vector3(1000f)),
-        new(new Vector3(-20f, 50f, 0), new Vector3(1000f)),
-        new(new Vector3(0, 30f, -20f), new Vector3(500f))
+        new(new Vector3(-10f, 40f, -50f), new Vector3(500f)),
+        new(new Vector3(0, 50f, 20f), new Vector3(750f)),
+        new(new Vector3(-20f, 50f, 0), new Vector3(750f)),
+        new(new Vector3(0, 30f, -20f), new Vector3(350f))
     };
-
 
     /// <summary>
     /// Generate the disco effect based on random integers.
     /// </summary>
     /// <returns></returns>
-    public Vector3 GenerateDisco()
+    public static Vector3 GenerateDisco()
     {
         Random rnd = new();
 
@@ -48,7 +53,7 @@ public class Light
     /// <summary>
     /// Adjusts certain light settings based on the user input.
     /// </summary>
-    public void AdjustLights(KeyboardKeyEventArgs kea)
+    public static void AdjustLights(KeyboardKeyEventArgs kea)
     {
         switch (kea)
         {

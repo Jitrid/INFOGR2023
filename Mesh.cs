@@ -42,7 +42,6 @@ public class Mesh
         // generate interleaved vertex data array (uv/normal/position per vertex)
         GL.GenBuffers(1, out vertexBufferId);
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferId);
-        GL.ObjectLabel(ObjectLabelIdentifier.Buffer, vertexBufferId, 8 + Filename.Length, "VBO for " + Filename);
         GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices?.Length * Marshal.SizeOf(typeof(ObjVertex))),
             Vertices, BufferUsageHint.StaticDraw);
 

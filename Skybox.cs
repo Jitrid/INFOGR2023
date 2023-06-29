@@ -58,6 +58,14 @@ public class Skybox
 
     public void Load()
     {
+        cubemap = new Shader("../../../shaders/cubemap_vs.glsl", "../../../shaders/cubemap_fs.glsl");
+
+        VAO = GL.GenVertexArray();
+        VBO = GL.GenBuffer();
+        GL.BindVertexArray(VAO);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
+        GL.BufferData(BufferTarget.ArrayBuffer, skyboxVertices.Length * sizeof(float), skyboxVertices, BufferUsageHint.StaticDraw);
+
         string[] faces =
         {
             "../../../assets/skybox/right.png",
@@ -69,15 +77,9 @@ public class Skybox
         };
         cubemapTexture = new Texture(faces);
 
-        VAO = GL.GenVertexArray();
-        VBO = GL.GenBuffer();
-        GL.BindVertexArray(VAO);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-        GL.BufferData(BufferTarget.ArrayBuffer, skyboxVertices.Length * sizeof(float), skyboxVertices, BufferUsageHint.StaticDraw);
-
-        cubemap = new Shader("../../../shaders/cubemap_vs.glsl", "../../../shaders/cubemap_fs.glsl");
-        GL.UseProgram(cubemap.ProgramID);
         cubemap.SetInt("skybox", 0);
+
+        GL.UseProgram(cubemap.ProgramID);
     }
 
     public void Render(Matrix4 worldToCamera, Matrix4 cameraToScreen)
@@ -88,8 +90,9 @@ public class Skybox
         GL.BindTexture(TextureTarget.TextureCubeMap, cubemapTexture.ID);
 
         Matrix4 matrix = new(new Matrix3(worldToCamera));
+        matrix = Matrix4.Identity;
         GL.UniformMatrix4(cubemap.UniformViewMatrix, false, ref matrix);
-        GL.UniformMatrix4(cubemap.UniformProjectionMatrix, false, ref cameraToScreen);
+        GL.UniformMatrix4(cubemap.UniformProjectionMatrix, false, ref matrix);
 
         GL.EnableVertexAttribArray(cubemap.InVertexPositionObject);
 

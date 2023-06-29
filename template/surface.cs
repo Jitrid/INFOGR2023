@@ -10,14 +10,13 @@ public class Surface
     public int[] pixels;
     static Surface? font;
     static int[]? fontRedir;
-    // surface constructor
+    
     public Surface(int w, int h)
     {
         width = w;
         height = h;
         pixels = new int[w * h];
     }
-    // surface constructor using a file
     public Surface(string fileName)
     {
         Image<Bgra32> bmp = Image.Load<Bgra32>(fileName);
@@ -28,6 +27,7 @@ public class Surface
             for (int x = 0; x < width; x++)
                 pixels[y * width + x] = (int)bmp[x, y].Bgra;
     }
+
     // create an OpenGL texture
     public int GenTexture()
     {
@@ -38,6 +38,7 @@ public class Surface
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
         return id;
     }
+
     // copy the surface to another surface
     public void CopyTo(Surface target, int x = 0, int y = 0)
     {
