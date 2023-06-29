@@ -8,6 +8,7 @@ public class Camera
 {
     private float x, y, z; 
     public Vector3 Position;
+    public Vector3 Front;
     private float pitch, yaw;
 
     public Camera(float x, float y, float z)
@@ -22,13 +23,12 @@ public class Camera
 
     public Matrix4 Load()
     {
-        Vector3 front;
-        front.X = MathF.Cos(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
-        front.Y = MathF.Sin(MathHelper.DegreesToRadians(pitch));
-        front.Z = MathF.Sin(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
-        front = Vector3.Normalize(front);
+        Front.X = MathF.Cos(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
+        Front.Y = MathF.Sin(MathHelper.DegreesToRadians(pitch));
+        Front.Z = MathF.Sin(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
+        Front = Vector3.Normalize(Front);
 
-        return Matrix4.LookAt(new Vector3(x, y, z), new Vector3(x, y, z) + front, Vector3.UnitY);
+        return Matrix4.LookAt(Position, Position + Front, Vector3.UnitY);
     }
 
     /// <summary>

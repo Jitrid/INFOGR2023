@@ -13,6 +13,12 @@ out vec4 positionWorld;			// vertex position in World Space
 out vec4 normalWorld;			// vertex normal in World Space
 out vec2 uv;					// vertex uv texture coordinates (pass-through)
 
+// normal mapping
+layout (location = 4) in vec3 tangent;
+layout (location = 5) in vec3 biTangent;
+
+out mat3 TBN;
+
 void main()
 {
 	// transform vertex position to 2D Screen Space + depth
@@ -24,4 +30,10 @@ void main()
 
 	// pass the uv coordinate
 	uv = vertexUV;
+
+	// normal mapping
+	vec3 T = normalize(vec3(inverse(transpose(objectToWorld)) * vec4(tangent, 0.0)));
+	vec3 B = normalize(vec3(inverse(transpose(objectToWorld)) * vec4(biTangent, 0.0)));
+	vec3 N = normalize(vec3(inverse(transpose(objectToWorld)) * normalWorld));
+	TBN = mat3(T, B, N);
 }

@@ -8,22 +8,30 @@ struct Light
     vec3 Color;
 };
 
-in vec4 positionWorld;              // fragment position in World Space
-in vec4 normalWorld;                // fragment normal in World Space
-in vec2 uv;                         // fragment uv texture coordinates
+in vec4 positionWorld;
+in vec4 normalWorld;
+in vec2 uv;
 
 uniform vec3 cameraPosition;
 uniform int lightsCount;            // how many lights are in the scene.
-uniform Light lights[10];           // the array of the light sources - maximum set to 1000 as it must be a constant.
+uniform Light lights[10];           // the array of the light sources - maximum set to 10 as it must be a constant.
+
 uniform sampler2D diffuseTexture;
+uniform sampler2D normalTexture;
 
 out vec4 fragmentColor;
+
+// normal mapping
+in mat3 TBN;
+uniform int mappingEnabled; // 1 for true, 0 for false.
 
 void main()
 {
     // Constant values
     vec3 diffuseColor = texture(diffuseTexture, uv).rgb;
-    vec3 N = normalize(normalWorld.xyz);
+
+    // Set the normal based on whether or not normal mapping has been enabled.
+    vec3 N = mappingEnabled == 1 ? normalize(TBN * (texture(normalTexture, uv).rgb * 2.0 - 1.0)) : normalize(normalWorld.xyz);
 
     vec3 res = vec3(0);
 

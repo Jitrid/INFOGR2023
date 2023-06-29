@@ -7,35 +7,50 @@ namespace Rasterization;
 public class Texture
 {
     public int ID;
-
-    public Texture(string filename, bool isCubeMap = false)
+    private string filename;        // regular texture
+    private string[] faces;         // cube map textures
+    
+    public Texture(string filename)
     {
-        if (string.IsNullOrEmpty(filename)) throw new ArgumentException(filename);
+        this.filename = filename;
+        Load(false);
+    }
+    public Texture(string[] faces)
+    {
+        this.faces = faces;
+        Load(true);
+    }
+
+    public void Load(bool isCubeMap)
+    {
         TextureTarget target = isCubeMap ? TextureTarget.TextureCubeMap : TextureTarget.Texture2D;
+
         ID = GL.GenTexture();
         GL.BindTexture(target, ID);
 
-        // We will not upload mipmaps, so disable mipmapping (otherwise the texture will not appear).
-        // We can use GL.GenerateMipmaps() or GL.Ext.GenerateMipmaps() to create
-        // mipmaps automatically. In that case, use TextureMinFilter.LinearMipmapLinear to enable them.
+        for (int i = 0; i < (isCubeMap ? faces.Length : 1); i++)
+        {
+            Image<Bgra32> bmp = Image.Load<Bgra32>(isCubeMap ? faces[i] : filename);
+            int width = bmp.Width;
+            int height = bmp.Height;
+            int[] pixels = new int[width * height];
+
+            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                pixels[y * width + x] = (int)bmp[x, y].Bgra;
+
+            if (!isCubeMap) GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
+            else
+                GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX + i, 0, PixelInternalFormat.Rgba,
+                    width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
+        }
+
         GL.TexParameter(target, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(target, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
-        // remove maybe?
         GL.TexParameter(target, TextureParameterName.TextureWrapS, (int)TextureParameterName.ClampToEdge);
         GL.TexParameter(target, TextureParameterName.TextureWrapT, (int)TextureParameterName.ClampToEdge);
-        GL.TexParameter(target, TextureParameterName.TextureWrapR, (int)TextureParameterName.ClampToEdge);
-
-        Image<Bgra32> bmp = Image.Load<Bgra32>(filename);
-        int width = bmp.Width;
-        int height = bmp.Height;
-        int[] pixels = new int[width * height];
-
-        for (int y = 0; y < height; y++)
-        for (int x = 0; x < width; x++)
-            pixels[y * width + x] = (int)bmp[x, y].Bgra;
-
-        GL.TexImage2D(target, 0, PixelInternalFormat.Rgba, 
-            width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
+        if (isCubeMap) GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapR, (int)TextureParameterName.ClampToEdge);
     }
 }

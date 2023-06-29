@@ -1,5 +1,5 @@
 ﻿using OpenTK.Graphics.OpenGL;
-// Dit is een test-comment vanuit Rider
+
 // based on http://www.opentk.com/doc/graphics/frame-buffer-objects
 
 namespace Rasterization;

@@ -9,8 +9,14 @@ public class Shader
     public int InVertexPositionObject;
     public int InVertexNormalObject;
     public int InVertexUV;
+    public int InVertexTangent;
+    public int InVertexBiTangent;
+
     public int UniformObjectToScreen;
     public int UniformObjectToWorld;
+
+    public int UniformViewMatrix;
+    public int UniformProjectionMatrix;
 
     public Shader(string vertexShader, string fragmentShader)
     {
@@ -28,8 +34,14 @@ public class Shader
         InVertexPositionObject = GL.GetAttribLocation(ProgramID, "vertexPosition");
         InVertexNormalObject = GL.GetAttribLocation(ProgramID, "vertexNormal");
         InVertexUV = GL.GetAttribLocation(ProgramID, "vertexUV");
+        InVertexTangent = GL.GetAttribLocation(ProgramID, "tangent");
+        InVertexBiTangent = GL.GetAttribLocation(ProgramID, "biTangent");
+
         UniformObjectToScreen = GL.GetUniformLocation(ProgramID, "objectToScreen");
         UniformObjectToWorld = GL.GetUniformLocation(ProgramID, "objectToWorld");
+
+        UniformViewMatrix = GL.GetUniformLocation(ProgramID, "viewMatrix");
+        UniformProjectionMatrix = GL.GetUniformLocation(ProgramID, "projectionMatrix");
     }
 
     /// <summary>

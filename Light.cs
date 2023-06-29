@@ -27,7 +27,7 @@ public class Light
     public bool LightsEnabled = true;
     public readonly Lightsource[] Lights =
     {
-        new(new Vector3(20f, 40f, 0), new Vector3(750f)),
+        new(new Vector3(-10f, 40f, -50f), new Vector3(750f)),
         new(new Vector3(0, 50f, 20f), new Vector3(1000f)),
         new(new Vector3(-20f, 50f, 0), new Vector3(1000f)),
         new(new Vector3(0, 30f, -20f), new Vector3(500f))

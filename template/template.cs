@@ -90,7 +90,7 @@ public class OpenTKApp : GameWindow
         {
             GL.Enable(EnableCap.DebugOutput);
             // disable all debug messages
-            GL.DebugMessageControl(DebugSourceControl.DontCare, DebugTypeControl.DontCare, DebugSeverityControl.DontCare, 0, new int[0], false);
+            GL.DebugMessageControl(DebugSourceControl.DontCare, DebugTypeControl.DontCare, DebugSeverityControl.DontCare, 0, Array.Empty<int>(), false);
             // enable selected debug messages based on source, type, and severity
             foreach (DebugSourceControl source in new DebugSourceControl[] { DebugSourceControl.DebugSourceApi, DebugSourceControl.DebugSourceShaderCompiler })
             {
@@ -159,33 +159,23 @@ public class OpenTKApp : GameWindow
     protected override void OnRenderFrame(FrameEventArgs e)
     {
         base.OnRenderFrame(e);
-        // called once per frame; render
-        if (app != null) app.Tick();
+
         if (terminated)
         {
             Close();
             return;
         }
+
         // convert MyApplication.screen to OpenGL texture
         if (app != null)
         {
-            GL.ClearColor(Color4.Black);
-            GL.Disable(EnableCap.DepthTest);
-            GL.BindTexture(TextureTarget.Texture2D, screenID);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                app.Screen.width, app.Screen.height, 0,
-                PixelFormat.Bgra,
-                PixelType.UnsignedByte, app.Screen.pixels
-            );
-
-            quad.Render(screenShader, screenID);
-            
             // prepare for generic OpenGL rendering
             GL.Enable(EnableCap.DepthTest);
-            GL.Clear(ClearBufferMask.DepthBufferBit);
+            GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
             // do OpenGL rendering
             app.RenderGL();
         }
+
         // tell OpenTK we're done rendering
         SwapBuffers();
     }
