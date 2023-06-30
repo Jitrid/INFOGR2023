@@ -1,5 +1,6 @@
 #version 330
 
+
 // shader inputs
 in vec3 vertexPosition;		// vertex position in Object Space
 									// this shader assumes Object Space is identical to Screen Space
