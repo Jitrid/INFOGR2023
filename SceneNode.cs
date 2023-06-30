@@ -11,7 +11,7 @@ public class SceneNode
     public SceneNode(Mesh mesh)
     {
         Children = new List<SceneNode>();
-        Transform = mesh.ObjectToWorld;
+        Transform = mesh.AffineTransformation;
         Mesh = mesh;
     }
 

@@ -4,7 +4,6 @@ namespace Rasterization;
 
 public class ScreenQuad
 {
-    // data members
     private int VAO, VBO;
 
     private readonly float[] vertices =

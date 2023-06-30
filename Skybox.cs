@@ -6,7 +6,7 @@ namespace Rasterization;
 public class Skybox
 {
     // https://learnopengl.com/code_viewer.php?code=advanced/cubemaps_skybox_data
-    private readonly float[] skyboxVertices = {
+    private static readonly float[] skyboxVertices = {
         // positions          
         -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
@@ -51,13 +51,27 @@ public class Skybox
         1.0f, -1.0f,  1.0f
     };
 
-    private int VAO = -1, VBO = -1;
+    private static int VAO = -1, VBO = -1;
 
-    private Texture? cubemapTexture;
-    private Shader? cubemap;
+    private static Texture? texture;
+    private static Shader? cubemap;
 
-    public void Load()
+    /// <summary>
+    /// Initializes the cube map.
+    /// </summary>
+    public static void Load()
     {
+        cubemap = new Shader("../../../shaders/cubemap_vs.glsl", "../../../shaders/cubemap_fs.glsl");
+
+        VAO = GL.GenVertexArray();
+        VBO = GL.GenBuffer();
+        GL.BindVertexArray(VAO);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
+        GL.BufferData(BufferTarget.ArrayBuffer, skyboxVertices.Length * sizeof(float), skyboxVertices, BufferUsageHint.StaticDraw);
+
+        GL.EnableVertexAttribArray(0);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), IntPtr.Zero);
+
         string[] faces =
         {
             "../../../assets/skybox/right.png",
@@ -67,38 +81,40 @@ public class Skybox
             "../../../assets/skybox/front.png",
             "../../../assets/skybox/back.png"
         };
-        cubemapTexture = new Texture(faces);
+        texture = new Texture(faces);
 
-        VAO = GL.GenVertexArray();
-        VBO = GL.GenBuffer();
-        GL.BindVertexArray(VAO);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-        GL.BufferData(BufferTarget.ArrayBuffer, skyboxVertices.Length * sizeof(float), skyboxVertices, BufferUsageHint.StaticDraw);
-
-        cubemap = new Shader("../../../shaders/cubemap_vs.glsl", "../../../shaders/cubemap_fs.glsl");
-        GL.UseProgram(cubemap.ProgramID);
         cubemap.SetInt("skybox", 0);
+
+        GL.UseProgram(cubemap.ProgramID);
     }
 
-    public void Render(Matrix4 worldToCamera, Matrix4 cameraToScreen)
+    /// <summary>
+    /// Updates the values for the cube map each frame.
+    /// </summary>
+    /// <param name="view">The view matrix of the scene.</param>
+    /// <param name="projection">The projection matrix of the scene.</param>
+    public static void Render(Matrix4 view, Matrix4 projection)
     {
-        GL.UseProgram(cubemap.ProgramID);
-        
-        GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.TextureCubeMap, cubemapTexture.ID);
+        Matrix4 matrix = new(new Matrix3(view));
+        GL.UniformMatrix4(cubemap.ViewTransformation, false, ref matrix);
+        GL.UniformMatrix4(cubemap.ProjectionTransformation, false, ref projection);
 
-        Matrix4 matrix = new(new Matrix3(worldToCamera));
-        GL.UniformMatrix4(cubemap.UniformViewMatrix, false, ref matrix);
-        GL.UniformMatrix4(cubemap.UniformProjectionMatrix, false, ref cameraToScreen);
+        GL.UseProgram(cubemap!.ProgramID);
 
-        GL.EnableVertexAttribArray(cubemap.InVertexPositionObject);
+        GL.DepthFunc(DepthFunction.Lequal);
 
         GL.BindVertexArray(VAO);
         GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
 
-        GL.VertexAttribPointer(cubemap.InVertexPositionObject, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 8);
+        GL.EnableVertexAttribArray(0);
+        GL.VertexAttribPointer(cubemap.InVertexPositionObject, 3,
+            VertexAttribPointerType.Float, false, 3 * sizeof(float), IntPtr.Zero);
 
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, VBO);
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindTexture(TextureTarget.TextureCubeMap, texture!.ID);
         GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+
+        GL.DepthFunc(DepthFunction.Less);
+        GL.UseProgram(0);
     }
 }

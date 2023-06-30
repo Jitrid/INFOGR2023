@@ -30,9 +30,6 @@ public class OpenTKApp : GameWindow
     private static Program? app;       // instance of the application
     private static bool terminated;    // application terminates gracefully when this is true
 
-    private ScreenQuad quad = null!;
-    private Shader screenShader = null!;
-
     /// <summary>
     /// Indicates the current state of the cursor.
     /// Has to be custom written because our GameWindow for some reason doesn't have it.
@@ -47,7 +44,7 @@ public class OpenTKApp : GameWindow
     public OpenTKApp()
         : base(GameWindowSettings.Default, new NativeWindowSettings()
         {
-            Title = "The ultimate rasterizer",
+            Title = "Pwease gwade us UwU",
             Size = new Vector2i(1280, 720),
             Profile = ContextProfile.Core,  // required for fixed-function, which is probably not supported on MacOS
             Flags = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ContextFlags.Default : ContextFlags.Debug) // enable error reporting (not supported on MacOS)
@@ -92,18 +89,14 @@ public class OpenTKApp : GameWindow
             // disable all debug messages
             GL.DebugMessageControl(DebugSourceControl.DontCare, DebugTypeControl.DontCare, DebugSeverityControl.DontCare, 0, Array.Empty<int>(), false);
             // enable selected debug messages based on source, type, and severity
-            foreach (DebugSourceControl source in new DebugSourceControl[] { DebugSourceControl.DebugSourceApi, DebugSourceControl.DebugSourceShaderCompiler })
-            {
-                foreach (DebugTypeControl type in new DebugTypeControl[] { DebugTypeControl.DebugTypeError, DebugTypeControl.DebugTypeDeprecatedBehavior, DebugTypeControl.DebugTypeUndefinedBehavior, DebugTypeControl.DebugTypePortability })
-                {
-                    foreach (DebugSeverityControl severity in new DebugSeverityControl[] { DebugSeverityControl.DebugSeverityHigh })
-                    {
+            foreach (DebugSourceControl source in new[] { DebugSourceControl.DebugSourceApi, DebugSourceControl.DebugSourceShaderCompiler })
+                foreach (DebugTypeControl type in new[] { DebugTypeControl.DebugTypeError, DebugTypeControl.DebugTypeDeprecatedBehavior, DebugTypeControl.DebugTypeUndefinedBehavior, DebugTypeControl.DebugTypePortability })
+                    foreach (DebugSeverityControl severity in new[] { DebugSeverityControl.DebugSeverityHigh })
                         GL.DebugMessageControl(source, type, severity, 0, Array.Empty<int>(), true);
-                    }
-                }
-            }
+
             // GL.DebugMessageCallback(DebugCallback, (IntPtr)0);
         }
+
         // prepare for rendering
         GL.ClearColor(0, 0, 0, 0);
         GL.Disable(EnableCap.DepthTest);
@@ -111,10 +104,7 @@ public class OpenTKApp : GameWindow
         app = new Program(screen);
         screenID = app.Screen.GenTexture();
 
-        quad = new ScreenQuad();
-        screenShader = new Shader("../../../shaders/other/screen_vs.glsl", "../../../shaders/other/screen_fs.glsl");
-        
-        // Register events to adjust the camera based on mouse and keyboard input.
+        // Register events to adjust the camera based on keyboard input.
         KeyDown += kea => app.KeyboardInput(kea);
 
         app.Init();
@@ -166,15 +156,11 @@ public class OpenTKApp : GameWindow
             return;
         }
 
-        // convert MyApplication.screen to OpenGL texture
-        if (app != null)
-        {
-            // prepare for generic OpenGL rendering
-            GL.Enable(EnableCap.DepthTest);
-            GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
-            // do OpenGL rendering
-            app.RenderGL();
-        }
+        // prepare for generic OpenGL rendering
+        GL.Enable(EnableCap.DepthTest);
+        GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
+        // do OpenGL rendering
+        app.RenderGL();
 
         // tell OpenTK we're done rendering
         SwapBuffers();
@@ -183,8 +169,8 @@ public class OpenTKApp : GameWindow
     {
         // entry point
         Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
-        using OpenTKApp app = new();
-        app.RenderFrequency = 30.0;
-        app.Run();
+        using OpenTKApp openTKApp = new();
+        openTKApp.RenderFrequency = 30.0;
+        openTKApp.Run();
     }
 }
