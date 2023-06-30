@@ -23,6 +23,10 @@ class Program
 
     // meshes
     private Mesh? teapot, floor;
+
+    private List<Mesh> meshes;
+
+    private SceneGraph sceneGraph;
     // textures
     private Texture? wood;
     private Texture? brick, brickNormal; // textures affected by normal mapping have two variants.
@@ -55,11 +59,15 @@ class Program
         lut = new Texture("../../../assets/textures/LUT.png");
 
         // meshes
-        Matrix4 floorMatrix = Matrix4.CreateScale(new Vector3(1.5f, 0.5f, 1.5f)) * Matrix4.CreateRotationZ(75.0f);
+        Matrix4 floorMatrix = Matrix4.CreateScale(new Vector3(2.5f, 0.5f, 2.5f)) * Matrix4.CreateRotationZ(75.0f);
         floor = new Mesh("../../../assets/objects/floor.obj", floorMatrix, brick, brickNormal);
 
         Matrix4 teapotMatrix = Matrix4.CreateTranslation(new Vector3(2f, 0.5f, 0));
         teapot = new Mesh("../../../assets/objects/teapot.obj", teapotMatrix, wood);
+        meshes = new List<Mesh>();
+        meshes.Add(floor);
+        meshes.Add(teapot);
+        sceneGraph = new SceneGraph(meshes);
 
         // create the shaders
         main = new Shader("../../../shaders/scene_vs.glsl", "../../../shaders/scene_fs.glsl");
@@ -93,13 +101,13 @@ class Program
             RenderLights();
             main.SetVec3("cameraPosition", Camera.Position);
 
-            // SceneGraph.Render(main, ...);
+            sceneGraph.Render(main,Matrix4.Identity,view,projection);
 
-            SceneNode node1 = new(floor!);
-            SceneNode node2 = new(teapot!);
+            //SceneNode node1 = new(floor!);
+            //SceneNode node2 = new(teapot!);
             // node1.AddChild(node2);
-            node1.Render(main, floor!.AffineTransformation, view, projection);
-            node2.Render(main, teapot!.AffineTransformation, view, projection);
+            //node1.Render(main, floor!.AffineTransformation, view, projection);
+            //node2.Render(main, teapot!.AffineTransformation, view, projection);
         }
 
         // render quad

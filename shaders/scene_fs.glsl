@@ -14,7 +14,7 @@ in vec2 uv;
 
 uniform vec3 cameraPosition;
 uniform int lightsCount;            // how many lights are in the scene.
-uniform Light lights[10];           // the array of the light sources - maximum set to 10 as it must be a constant.
+uniform Light lights[64];           // the array of the light sources - maximum set to 10 as it must be a constant.
 
 uniform sampler2D diffuseTexture;
 uniform sampler2D normalTexture;

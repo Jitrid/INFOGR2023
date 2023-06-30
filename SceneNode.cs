@@ -4,9 +4,22 @@ namespace Rasterization;
 
 public class SceneGraph
 {
-    public void Render(SceneNode n, Shader s, Matrix4 pt, Matrix4 wc, Matrix4 cs)
+    private List<SceneNode> nodes;
+
+    public SceneGraph(List<Mesh> meshes)
     {
-        n.Render(s,pt,wc,cs);
+        nodes = new List<SceneNode>();
+        foreach (Mesh m in meshes)
+        {
+            nodes.Add(new SceneNode(m));
+        }
+    }
+    public void Render(Shader s, Matrix4 pt, Matrix4 wc, Matrix4 cs)
+    {
+        foreach (var node in nodes)
+        {
+            node.Render(s, pt,wc,cs );
+        }
     }
 }
 public class SceneNode

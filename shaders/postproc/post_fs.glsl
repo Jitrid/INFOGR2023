@@ -26,7 +26,7 @@ void main()
         // apply vignetting
         float radius = length(positionFromCenter);
         // linear vignette
-        vignette = 1.0 - abs(radius * 10);
+        vignette = 1.0 - abs(radius * 1.5);
         // Clamp the vignette value between 0 and 1
         vignette = clamp(vignette, 0.0, 1.0);
     }
