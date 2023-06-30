@@ -6,6 +6,10 @@ struct Light
 { 
     vec3 Position;
     vec3 Color;
+    vec3 Direction;
+    float Cutoff;
+    float CutoffOut;
+    int Type; // 0 = point 1 = spot
 };
 
 in vec4 positionWorld;
@@ -36,7 +40,7 @@ void main()
     vec3 res = vec3(0);
 
     // Ambient lighting
-    vec3 ambientLighting = vec3(0.1) * diffuseColor;
+    vec3 ambientLighting = vec3(0) * diffuseColor;
     
     // Apply Phong for all light sources.
     for (int i = 0; i < lightsCount; i++ )
@@ -53,6 +57,13 @@ void main()
         vec3 V = normalize(cameraPosition - positionWorld.xyz);
         float spec = pow(max(dot(V, R), 0.0), 32.0);
         vec3 specularLighting = vec3(1) * spec;
+        float intensity = 1.0f;
+        if (light.Type == 1) {
+        float theta = dot(normalize(-light.Direction), L);
+        float epsilon = light.Cutoff - light.CutoffOut;
+        intensity = clamp((theta - light.CutoffOut) / epsilon, 0.0, 1.0);
+        
+        }
 
         res += (light.Color/(r * r) * (diffuseLighting + specularLighting));
     }
