@@ -26,6 +26,7 @@ class Program
 
     private int vignette = 1;
     private int aberration = 1;
+    private int togglelut = 1;
 
     public Program(Surface screen)
     {
@@ -44,7 +45,7 @@ class Program
         // normal textures
         brickNormal = new Texture("../../../assets/textures/brick_normal.jpg");
         // lut
-        lut = new Texture("../../../assets/textures/PAINLUT.png");
+        lut = new Texture("../../../assets/textures/LUT.png");
 
         // meshes
         Matrix4 floorMatrix = Matrix4.CreateScale(new Vector3(1.5f, 0.5f, 1.5f)) * Matrix4.CreateRotationZ(75.0f);
@@ -92,15 +93,17 @@ class Program
             node2.Render(main, teapot!.AffineTransformation, view, projection);
         }
 
+       
+        // render quad
+        target.Unbind();
+        if (postproc != null)
+            quad!.Render(postproc, target.GetTextureID());
+        
         //LUT
         GL.ActiveTexture(TextureUnit.Texture4);
         GL.BindTexture(TextureTarget.Texture2D, lut!.ID);
         GL.Uniform1(GL.GetUniformLocation(postproc!.ProgramID, "lut"), 4);
 
-        // render quad
-        target.Unbind();
-        if (postproc != null)
-            quad!.Render(postproc, target.GetTextureID());
     }
 
     // Separated code to tidy up the RenderGL method.
@@ -139,6 +142,12 @@ class Program
             postproc.SetInt("applyVignette", vignette);
             vignette = vignette == 1 ? 0 : 1;
             aberration = aberration == 1 ? 0 : 1;
+        }
+
+        if (kea.Key == Keys.X)
+        {
+            postproc.SetInt("toggleLUT", togglelut);
+            togglelut = togglelut == 1 ? 0 : 1;
         }
     }
 }

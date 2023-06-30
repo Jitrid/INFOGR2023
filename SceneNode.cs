@@ -2,6 +2,13 @@ using OpenTK.Mathematics;
 
 namespace Rasterization;
 
+public class SceneGraph
+{
+    public void Render(SceneNode n, Shader s, Matrix4 pt, Matrix4 wc, Matrix4 cs)
+    {
+        n.Render(s,pt,wc,cs);
+    }
+}
 public class SceneNode
 {
     public Mesh Mesh { get; set; }
