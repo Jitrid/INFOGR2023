@@ -49,6 +49,7 @@ public class OpenTKApp : GameWindow
             Profile = ContextProfile.Core,  // required for fixed-function, which is probably not supported on MacOS
             Flags = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ContextFlags.Default : ContextFlags.Debug) // enable error reporting (not supported on MacOS)
                     | ContextFlags.ForwardCompatible, // required for MacOS
+            NumberOfSamples = 16
         })
     {
     }
@@ -171,6 +172,7 @@ public class OpenTKApp : GameWindow
         Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
         using OpenTKApp openTKApp = new();
         openTKApp.RenderFrequency = 30.0;
+        GL.Enable(EnableCap.Multisample);
         openTKApp.Run();
     }
 }

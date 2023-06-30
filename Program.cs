@@ -1,6 +1,7 @@
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using Rasterization.Template;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
@@ -17,10 +18,14 @@ class Program
     private Mesh? teapot, floor;                    // meshes to draw using OpenGL
     private Texture? wood;                          // texture to use for rendering
     private Texture? brick, brickNormal;
+    private Texture? lut;
 
     private RenderTarget? target;                   // intermediate render target
     private ScreenQuad? quad;                       // screen filling quad for post processing
     private readonly bool useRenderTarget = true;   // required for post processing
+
+    private int vignette = 1;
+    private int aberration = 1;
 
     public Program(Surface screen)
     {
@@ -38,6 +43,8 @@ class Program
         brick = new Texture("../../../assets/textures/brick.jpg");
         // normal textures
         brickNormal = new Texture("../../../assets/textures/brick_normal.jpg");
+        // lut
+        lut = new Texture("../../../assets/textures/PAINLUT.png");
 
         // meshes
         Matrix4 floorMatrix = Matrix4.CreateScale(new Vector3(1.5f, 0.5f, 1.5f)) * Matrix4.CreateRotationZ(75.0f);
@@ -85,6 +92,11 @@ class Program
             node2.Render(main, teapot!.AffineTransformation, view, projection);
         }
 
+        //LUT
+        GL.ActiveTexture(TextureUnit.Texture4);
+        GL.BindTexture(TextureTarget.Texture2D, lut!.ID);
+        GL.Uniform1(GL.GetUniformLocation(postproc!.ProgramID, "lut"), 4);
+
         // render quad
         target.Unbind();
         if (postproc != null)
@@ -111,5 +123,22 @@ class Program
     {
         Camera.MovementInput(kea);
         Light.AdjustLights(kea);
+        SwitchPostProcOptions(kea);
+    }
+
+    /// <summary>
+    /// Toggle certain post-processing settings.
+    /// </summary>
+    public void SwitchPostProcOptions(KeyboardKeyEventArgs kea)
+    {
+        GL.UseProgram(postproc!.ProgramID);
+
+        if (kea.Key == Keys.Z)
+        {
+            postproc.SetInt("applyChrom", aberration);
+            postproc.SetInt("applyVignette", vignette);
+            vignette = vignette == 1 ? 0 : 1;
+            aberration = aberration == 1 ? 0 : 1;
+        }
     }
 }
