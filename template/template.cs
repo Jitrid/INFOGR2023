@@ -44,7 +44,7 @@ public class OpenTKApp : GameWindow
     public OpenTKApp()
         : base(GameWindowSettings.Default, new NativeWindowSettings()
         {
-            Title = "Pwease gwade us UwU",
+            Title = "Rasterizer?",
             Size = new Vector2i(1280, 720),
             Profile = ContextProfile.Core,  // required for fixed-function, which is probably not supported on MacOS
             Flags = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ContextFlags.Default : ContextFlags.Debug) // enable error reporting (not supported on MacOS)
@@ -59,9 +59,6 @@ public class OpenTKApp : GameWindow
     {
         base.OnLoad();
 
-        // called during application initialization
-        Console.WriteLine("OpenGL Version: " + GL.GetString(StringName.Version) + " (" + (Profile == ContextProfile.Compatability ? "Compatibility" : Profile) + " profile)");
-        Console.WriteLine("OpenGL Renderer: " + GL.GetString(StringName.Renderer) + (GL.GetString(StringName.Vendor) == "Intel" ? " (read DiscreteGPU.txt if you have another GPU that you would like to use)" : ""));
         // configure debug output (not supported on MacOS)
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {

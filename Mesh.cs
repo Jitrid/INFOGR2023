@@ -132,6 +132,7 @@ public class Mesh
         List<ObjTriangle> objTriangles = new();
 
         for (int i = 0; i < mesh.VertexCount; i++)
+            
             objVertices.Add(new ObjVertex
             {
                 Normal = ConvertToTKVec(mesh.Normals[i]),

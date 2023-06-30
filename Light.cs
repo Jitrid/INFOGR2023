@@ -12,10 +12,10 @@ public struct LightSource
     public Vector3 Position;
     public Vector3 Color;
     public Vector3 Direction;
-    public float cutOff;
-    public float cutoffOut;
-    public int Type;
-    
+    public float CutOff;
+    public float CutoffOut;
+    public int Type; // 0 = point 1 = spot
+
     /// <summary>
     /// Temporary variable to store the colour while the Lights are off.
     /// </summary>
@@ -26,8 +26,8 @@ public struct LightSource
         Position = position;
         Color = color;
         Direction = direction;
-        cutOff = cutoff;
-        cutoffOut = outerCutoff;
+        CutOff = cutoff;
+        CutoffOut = outerCutoff;
         Type = type;
         PreviousColor = Vector3.Zero;
     }
@@ -42,12 +42,15 @@ public class Light
     public static bool LightsEnabled = true;
     public static readonly LightSource[] Lights =
     {
-        //new(new Vector3(-10f, 40f, -50f), new Vector3(500f), 0), // Point light
-        new(new Vector3(0, 10f, 0f), new Vector3(2000f,0,0), 1, new Vector3(0, -1, 0), 12.5f, 15.5f), // Spotlight
-        new(new Vector3(-20f, 50f, 0), new Vector3(0, 2500f, 0), 0), // Point light
-        //new(new Vector3(0, 30f, -20f), new Vector3(2350f), 1, new Vector3(0, -1, 0), 12.5f, 17.5f) // Spotlight
+        // point lights
+        new(new Vector3(-10f, 40f, -50f), new Vector3(1000f), 0),
+        new(new Vector3(25, 80f, 20f), new Vector3(2000f), 0),
+        new(new Vector3(0f, 50f, 0), new Vector3(750f), 0),
+        new(new Vector3(0, 30f, -20f), new Vector3(350f), 0),
+        // spotlight
+        new(new Vector3(180f, 20f, -40f), new Vector3(500f), 
+            1, new Vector3(25f, -30f, 0), 12.5f, 15.5f)
     };
-
 
     /// <summary>
     /// Generate the disco effect based on random integers.

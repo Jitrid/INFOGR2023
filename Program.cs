@@ -21,17 +21,21 @@ class Program
     /// </summary>
     private Shader? postproc;
 
+    // scene graph
+    private SceneGraph? sceneGraph;
+
     // meshes
-    private Mesh? teapot, floor;
-
-    private List<Mesh> meshes;
-
-    private SceneGraph sceneGraph;
+    private List<Mesh>? meshes;
+    private Mesh? floor;
+    private Mesh? teapot, teapotChild;
+    private Mesh? spotlightTeapot;
+    
     // textures
-    private Texture? wood;
+    private Texture? wood, trippy;
     private Texture? brick, brickNormal; // textures affected by normal mapping have two variants.
     private Texture? lut;
 
+    // post-processing
     private RenderTarget? target;                   // intermediate render target
     private ScreenQuad? quad;                       // screen filling quad for post processing
     private readonly bool useRenderTarget = true;   // required for post-processing
@@ -46,12 +50,12 @@ class Program
         Screen = screen;
         Camera = new Camera(10f, 10f, 35f);
     }
-
-    // initialize
+    
     public void Init()
     {
         // textures
         wood = new Texture("../../../assets/textures/wood.jpg");
+        trippy = new Texture("../../../assets/textures/trippy.jpg");
         brick = new Texture("../../../assets/textures/brick.jpg");
         // normal textures
         brickNormal = new Texture("../../../assets/textures/brick_normal.jpg");
@@ -60,14 +64,23 @@ class Program
 
         // meshes
         Matrix4 floorMatrix = Matrix4.CreateScale(new Vector3(2.5f, 0.5f, 2.5f)) * Matrix4.CreateRotationZ(75.0f);
-        floor = new Mesh("../../../assets/objects/floor.obj", floorMatrix, brick, brickNormal);
-
         Matrix4 teapotMatrix = Matrix4.CreateTranslation(new Vector3(2f, 0.5f, 0));
+        Matrix4 teapotChildMatrix = Matrix4.CreateTranslation(new Vector3(35f, 10f, 5f)) * Matrix4.CreateScale(0.7f);
+
+        floor = new Mesh("../../../assets/objects/floor.obj", floorMatrix, brick, brickNormal);
         teapot = new Mesh("../../../assets/objects/teapot.obj", teapotMatrix, wood);
-        meshes = new List<Mesh>();
-        meshes.Add(floor);
-        meshes.Add(teapot);
+        teapotChild = new Mesh("../../../assets/objects/teapot.obj", teapotChildMatrix, trippy);
+
+        spotlightTeapot = new Mesh("../../../assets/objects/teapot.obj", Matrix4.CreateTranslation(200f, 0, -40), wood);
+
+        meshes = new List<Mesh>
+        {
+            floor,
+            teapot,
+            spotlightTeapot // demonstrates the spotlight
+        };
         sceneGraph = new SceneGraph(meshes);
+        sceneGraph.Nodes[1].AddChild(new SceneNode(teapotChild));
 
         // create the shaders
         main = new Shader("../../../shaders/scene_vs.glsl", "../../../shaders/scene_fs.glsl");
@@ -101,13 +114,7 @@ class Program
             RenderLights();
             main.SetVec3("cameraPosition", Camera.Position);
 
-            sceneGraph.Render(main,Matrix4.Identity,view,projection);
-
-            //SceneNode node1 = new(floor!);
-            //SceneNode node2 = new(teapot!);
-            // node1.AddChild(node2);
-            //node1.Render(main, floor!.AffineTransformation, view, projection);
-            //node2.Render(main, teapot!.AffineTransformation, view, projection);
+            sceneGraph!.Render(main,Matrix4.Identity,view,projection);
         }
 
         // render quad
@@ -130,6 +137,10 @@ class Program
             main!.SetVec3($"lights[{i}].Position", lights[i].Position);
             main.SetVec3($"lights[{i}].Color",
                 Light.TriggerWarningDoNotTurnOnIfEpilepticWeAreNotLiableInCourt ? Light.GenerateDisco() : lights[i].Color);
+            main!.SetVec3($"lights[{i}].Direction", lights[i].Direction);
+            main.SetFloat($"lights[{i}].Cutoff", lights[i].CutOff);
+            main.SetFloat($"lights[{i}].CutoffOut", lights[i].CutoffOut);
+            main.SetInt($"lights[{i}].Type", lights[i].Type);
         }
         main!.SetInt("lightsCount", lights.Length);
     }
