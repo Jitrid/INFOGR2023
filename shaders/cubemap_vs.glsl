@@ -13,6 +13,5 @@ void main()
 	uv = vertexPosition;
 
 	vec4 pos = view * projection * vec4(vertexPosition, 1.0);
-
 	gl_Position = pos.xyww;
 }

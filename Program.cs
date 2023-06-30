@@ -13,11 +13,11 @@ class Program
 
     private Shader? main;                           // main to use for rendering
     private Shader? postproc;                       // shader to use for post processing
-    private Skybox cubemap = new();
 
     private Mesh? teapot, floor;                    // meshes to draw using OpenGL
     private Texture? wood;                          // texture to use for rendering
     private Texture? brick, brickNormal;
+
     private RenderTarget? target;                   // intermediate render target
     private ScreenQuad? quad;                       // screen filling quad for post processing
     private readonly bool useRenderTarget = true;   // required for post processing
@@ -31,7 +31,7 @@ class Program
     // initialize
     public void Init()
     {
-        cubemap.Load();
+        Skybox.Load();
 
         // textures
         wood = new Texture("../../../assets/textures/wood.jpg");
@@ -55,7 +55,9 @@ class Program
         quad = new ScreenQuad();
     }
 
-    // tick for OpenGL rendering code
+    /// <summary>
+    /// Renders the scene each frame.
+    /// </summary>
     public void RenderGL()
     {
         Matrix4 view = Camera.Load(); // view
@@ -65,20 +67,22 @@ class Program
         // enable render target
         target!.Bind();
 
-        cubemap.Render(view, projection);
-
-        GL.UseProgram(main!.ProgramID);
-        RenderLights();
-        main.SetVec3("cameraPosition", Camera.Position);
-
+        Skybox.Render(view, projection);
+        
         // render scene to render target
         if (main != null)
         {
-            SceneNode node1 = new(floor);
-            SceneNode node2 = new(teapot);
+            GL.UseProgram(main!.ProgramID);
+            RenderLights();
+            main.SetVec3("cameraPosition", Camera.Position);
+
+            // SceneGraph.Render(main, ...);
+
+            SceneNode node1 = new(floor!);
+            SceneNode node2 = new(teapot!);
             // node1.AddChild(node2);
-            node1.Render(main, floor.AffineTransformation, view, projection);
-            node2.Render(main, teapot.AffineTransformation, view, projection);
+            node1.Render(main, floor!.AffineTransformation, view, projection);
+            node2.Render(main, teapot!.AffineTransformation, view, projection);
         }
 
         // render quad
@@ -87,6 +91,7 @@ class Program
             quad!.Render(postproc, target.GetTextureID());
     }
 
+    // Separated code to tidy up the RenderGL method.
     public void RenderLights()
     {
         LightSource[] lights = Light.Lights;

@@ -6,7 +6,7 @@ namespace Rasterization;
 public class Skybox
 {
     // https://learnopengl.com/code_viewer.php?code=advanced/cubemaps_skybox_data
-    private readonly float[] skyboxVertices = {
+    private static readonly float[] skyboxVertices = {
         // positions          
         -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
@@ -51,15 +51,15 @@ public class Skybox
         1.0f, -1.0f,  1.0f
     };
 
-    private int VAO = -1, VBO = -1;
+    private static int VAO = -1, VBO = -1;
 
-    private Texture? texture;
-    private Shader? cubemap;
+    private static Texture? texture;
+    private static Shader? cubemap;
 
     /// <summary>
     /// Initializes the cube map.
     /// </summary>
-    public void Load()
+    public static void Load()
     {
         cubemap = new Shader("../../../shaders/cubemap_vs.glsl", "../../../shaders/cubemap_fs.glsl");
 
@@ -93,7 +93,7 @@ public class Skybox
     /// </summary>
     /// <param name="view">The view matrix of the scene.</param>
     /// <param name="projection">The projection matrix of the scene.</param>
-    public void Render(Matrix4 view, Matrix4 projection)
+    public static void Render(Matrix4 view, Matrix4 projection)
     {
         Matrix4 matrix = new(new Matrix3(view));
         GL.UniformMatrix4(cubemap.ViewTransformation, false, ref matrix);
