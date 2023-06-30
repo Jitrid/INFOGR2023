@@ -45,38 +45,40 @@ public class Camera
     /// </summary>
     public void MovementInput(KeyboardKeyEventArgs kea)
     {
+        
         // Constant to set the movement speed.
         const float speed = 0.5f;
+        Vector3 right = Vector3.Normalize(Vector3.Cross(Front, Up));
 
         switch (kea.Key)
         {
             // forwards
             case Keys.W or Keys.Up:
-                z -= speed;
+                Position += speed * Front;
                 break;
             // backwards
             case Keys.S or Keys.Down:
-                z += speed;
+                Position -= speed * Front;
                 break;
             // right
             case Keys.D or Keys.Right:
-                x += speed;
+                Position += speed * right;
                 break;
             // left
             case Keys.A or Keys.Left:
-                x -= speed;
+                Position -= speed * right;
                 break;
             // up
             case Keys.Space:
-                y += speed;
+                Position += speed * Up;
                 break;
             // down
             case Keys.LeftShift:
-                y -= speed;
+                Position -= speed * Up;
                 break;
         }
 
-        Position = new Vector3(x, y, z);
+        //Position = new Vector3(x, y, z);
     }
 
     /// <summary>
@@ -87,7 +89,7 @@ public class Camera
         const float sensitvity = 0.1f;
 
         yaw += mea.DeltaX * sensitvity;
-        pitch += mea.DeltaY * sensitvity;
+        pitch -= mea.DeltaY * sensitvity;
 
         if (pitch > 89.0f)
             pitch = 89.0f;
