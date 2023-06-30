@@ -9,11 +9,11 @@ namespace Rasterization;
 class Program
 {
     public Surface Screen;
-    public Camera? Camera;
+    public Camera Camera;
 
     private Shader? main;                           // main to use for rendering
     private Shader? postproc;                       // shader to use for post processing
-    private Skybox cubemap = new Skybox();
+    private Skybox cubemap = new();
 
     private Mesh? teapot, floor;                    // meshes to draw using OpenGL
     private Texture? wood;                          // texture to use for rendering
@@ -21,13 +21,17 @@ class Program
     private RenderTarget? target;                   // intermediate render target
     private ScreenQuad? quad;                       // screen filling quad for post processing
     private readonly bool useRenderTarget = true;   // required for post processing
-    
-    public Program(Surface screen) => Screen = screen;
+
+    public Program(Surface screen)
+    {
+        Screen = screen;
+        Camera = new Camera(10f, 10f, 35f);
+    }
 
     // initialize
     public void Init()
     {
-        Camera = new Camera(10f, 10f, 35f);
+        cubemap.Load();
 
         // textures
         wood = new Texture("../../../assets/textures/wood.jpg");
@@ -49,19 +53,19 @@ class Program
         // the render target
         if (useRenderTarget) target = new RenderTarget(Screen.width, Screen.height);
         quad = new ScreenQuad();
-
-        // cubemap.Load();
     }
 
     // tick for OpenGL rendering code
     public void RenderGL()
     {
-        Matrix4 worldToCamera = Camera.Load(); // view
-        Matrix4 cameraToScreen = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(60.0f), // projection
+        Matrix4 view = Camera.Load(); // view
+        Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(60.0f), // projection
             (float)Screen.width/Screen.height, .1f, 1000);
 
         // enable render target
         target!.Bind();
+
+        cubemap.Render(view, projection);
 
         GL.UseProgram(main!.ProgramID);
         RenderLights();
@@ -73,11 +77,9 @@ class Program
             SceneNode node1 = new(floor);
             SceneNode node2 = new(teapot);
             // node1.AddChild(node2);
-            node1.Render(main, floor.ObjectToWorld, worldToCamera, cameraToScreen);
-            node2.Render(main, teapot.ObjectToWorld, worldToCamera, cameraToScreen);
+            node1.Render(main, floor.AffineTransformation, view, projection);
+            node2.Render(main, teapot.AffineTransformation, view, projection);
         }
-
-        // cubemap.Render(worldToCamera, cameraToScreen);
 
         // render quad
         target.Unbind();
@@ -97,9 +99,12 @@ class Program
         main!.SetInt("lightsCount", lights.Length);
     }
 
+    /// <summary>
+    /// Calls all methods associated with keyboard input.
+    /// </summary>
     public void KeyboardInput(KeyboardKeyEventArgs kea)
     {
-        Light.AdjustLights(kea);
         Camera.MovementInput(kea);
+        Light.AdjustLights(kea);
     }
 }

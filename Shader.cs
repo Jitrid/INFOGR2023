@@ -5,28 +5,29 @@ namespace Rasterization;
 
 public class Shader
 {
-    public int ProgramID, vsID, fsID;
+    public int ProgramID, VertexID, FragmentID;
+
+    // Vertex shader input
     public int InVertexPositionObject;
     public int InVertexNormalObject;
     public int InVertexUV;
     public int InVertexTangent;
     public int InVertexBiTangent;
-
-    public int UniformObjectToScreen;
-    public int UniformObjectToWorld;
-
-    public int UniformViewMatrix;
-    public int UniformProjectionMatrix;
+    
+    // Matrix transformations
+    public int ModelTransformation;
+    public int ViewTransformation;
+    public int ProjectionTransformation;
 
     public Shader(string vertexShader, string fragmentShader)
     {
         // compile shaders
         ProgramID = GL.CreateProgram();
-        Load(vertexShader, ShaderType.VertexShader, ProgramID, out vsID);
-        Load(fragmentShader, ShaderType.FragmentShader, ProgramID, out fsID);
+        Load(vertexShader, ShaderType.VertexShader, ProgramID, out VertexID);
+        Load(fragmentShader, ShaderType.FragmentShader, ProgramID, out FragmentID);
         GL.LinkProgram(ProgramID);
 
-        // Debug info
+        // debug info
         string infoLog = GL.GetProgramInfoLog(ProgramID);
         if (infoLog.Length != 0) Console.WriteLine(infoLog);
 
@@ -36,12 +37,10 @@ public class Shader
         InVertexUV = GL.GetAttribLocation(ProgramID, "vertexUV");
         InVertexTangent = GL.GetAttribLocation(ProgramID, "tangent");
         InVertexBiTangent = GL.GetAttribLocation(ProgramID, "biTangent");
-
-        UniformObjectToScreen = GL.GetUniformLocation(ProgramID, "objectToScreen");
-        UniformObjectToWorld = GL.GetUniformLocation(ProgramID, "objectToWorld");
-
-        UniformViewMatrix = GL.GetUniformLocation(ProgramID, "viewMatrix");
-        UniformProjectionMatrix = GL.GetUniformLocation(ProgramID, "projectionMatrix");
+        
+        ModelTransformation = GL.GetUniformLocation(ProgramID, "model");
+        ViewTransformation = GL.GetUniformLocation(ProgramID, "view");
+        ProjectionTransformation = GL.GetUniformLocation(ProgramID, "projection");
     }
 
     /// <summary>

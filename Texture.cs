@@ -7,8 +7,8 @@ namespace Rasterization;
 public class Texture
 {
     public int ID;
-    private string filename;        // regular texture
-    private string[] faces;         // cube map textures
+    private readonly string? filename;        // regular texture
+    private readonly string[]? faces;         // cube map textures
     
     public Texture(string filename)
     {
@@ -21,6 +21,10 @@ public class Texture
         Load(true);
     }
 
+    /// <summary>
+    /// Loads an image file into an actual texture.
+    /// </summary>
+    /// <param name="isCubeMap">Indicates whether to generate a cube map with six textures, or one regular texture.</param>
     public void Load(bool isCubeMap)
     {
         TextureTarget target = isCubeMap ? TextureTarget.TextureCubeMap : TextureTarget.Texture2D;
@@ -28,9 +32,9 @@ public class Texture
         ID = GL.GenTexture();
         GL.BindTexture(target, ID);
 
-        for (int i = 0; i < (isCubeMap ? faces.Length : 1); i++)
+        for (int i = 0; i < (isCubeMap ? faces!.Length : 1); i++)
         {
-            Image<Bgra32> bmp = Image.Load<Bgra32>(isCubeMap ? faces[i] : filename);
+            Image<Bgra32> bmp = Image.Load<Bgra32>(isCubeMap ? faces![i] : filename);
             int width = bmp.Width;
             int height = bmp.Height;
             int[] pixels = new int[width * height];

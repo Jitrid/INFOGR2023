@@ -12,14 +12,14 @@ namespace Rasterization;
 public class Mesh
 {
     // data members
-    public readonly string Filename; // for improved error reporting
-    public ObjVertex[]? Vertices; // vertices (positions and normals in Object Space, and texture coordinates)
-    public ObjTriangle[]? Triangles; // triangles (3 indices into the vertices array)
-    public ObjQuad[]? Quads; // quads (4 indices into the vertices array)
-    private int vertexBufferId; // vertex buffer object (VBO) for vertex data
-    private int triangleBufferId; // element buffer object (EBO) for triangle vertex indices
+    public readonly string Filename;        // for improved error reporting
+    public ObjVertex[]? Vertices;           // vertices (positions and normals in Object Space, and texture coordinates)
+    public ObjTriangle[]? Triangles;        // triangles (3 indices into the vertices array)
+    public ObjQuad[]? Quads;                // quads (4 indices into the vertices array)
+    private int vertexBufferId;             // vertex buffer object (VBO) for vertex data
+    private int triangleBufferId;           // element buffer object (EBO) for triangle vertex indices
 
-    public Matrix4 ObjectToWorld;
+    public Matrix4 AffineTransformation;
     public Texture Texture;
     public Texture TextureNormal;
     private bool normalMappingEnabled;
@@ -29,7 +29,7 @@ public class Mesh
         Filename = filename;
         Load(filename);
 
-        ObjectToWorld = model;
+        AffineTransformation = model;
         Texture = texture;
         TextureNormal = textureNormal;
         normalMappingEnabled = textureNormal != null;
@@ -52,11 +52,14 @@ public class Mesh
             (IntPtr)(Triangles?.Length * Marshal.SizeOf(typeof(ObjTriangle))), Triangles, BufferUsageHint.StaticDraw);
     }
 
-    // render the mesh using the supplied shader and matrix
+    /// <summary>
+    /// Renders a mesh onto the scene with the supplied shader.
+    /// </summary>
+    /// <param name="shader">The shader to apply to the mesh.</param>
+    /// <param name="objectToCamera">The view matrix.</param>
+    /// <param name="cameraToScreen">The projection matrix.</param>
     public void Render(Shader shader, Matrix4 objectToCamera, Matrix4 cameraToScreen)
     {
-        Matrix4 objectToScreen = ObjectToWorld * objectToCamera * cameraToScreen;
-
         Prepare();
 
         // enable shader
@@ -75,8 +78,9 @@ public class Mesh
         }
 
         // pass transforms to vertex shader
-        GL.UniformMatrix4(shader.UniformObjectToScreen, false, ref objectToScreen);
-        GL.UniformMatrix4(shader.UniformObjectToWorld, false, ref ObjectToWorld);
+        GL.UniformMatrix4(shader.ViewTransformation, false, ref objectToCamera);
+        GL.UniformMatrix4(shader.ProjectionTransformation, false, ref cameraToScreen);
+        GL.UniformMatrix4(shader.ModelTransformation, false, ref AffineTransformation);
         shader.SetInt("mappingEnabled", normalMappingEnabled ? 1 : 0);
 
         // enable position, normal and uv attribute arrays corresponding to the shader "in" variables
