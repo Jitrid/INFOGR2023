@@ -116,6 +116,10 @@ public class Mesh
         GL.UseProgram(0);
     }
 
+    /// <summary>
+    /// Loads a normal texture to simulate normal mapping.
+    /// </summary>
+    /// <param name="filename">The texture file to load.</param>
     public void Load(string filename)
     {
         using AssimpContext assimp = new();

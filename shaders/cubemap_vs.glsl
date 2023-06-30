@@ -1,7 +1,7 @@
 ﻿/* Cubemap Vertex Shader */
 #version 330
 
-in vec3 vertexPosition;
+layout (location = 0) in vec3 vertexPosition;
 
 uniform mat4 view;
 uniform mat4 projection;

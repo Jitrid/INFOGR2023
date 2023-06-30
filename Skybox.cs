@@ -6,7 +6,7 @@ namespace Rasterization;
 public class Skybox
 {
     // https://learnopengl.com/code_viewer.php?code=advanced/cubemaps_skybox_data
-    private static readonly float[] skyboxVertices = {
+    private static readonly float[] SkyboxVertices = {
         // positions          
         -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
@@ -67,7 +67,7 @@ public class Skybox
         VBO = GL.GenBuffer();
         GL.BindVertexArray(VAO);
         GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-        GL.BufferData(BufferTarget.ArrayBuffer, skyboxVertices.Length * sizeof(float), skyboxVertices, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, SkyboxVertices.Length * sizeof(float), SkyboxVertices, BufferUsageHint.StaticDraw);
 
         GL.EnableVertexAttribArray(0);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), IntPtr.Zero);
@@ -96,10 +96,10 @@ public class Skybox
     public static void Render(Matrix4 view, Matrix4 projection)
     {
         Matrix4 matrix = new(new Matrix3(view));
-        GL.UniformMatrix4(cubemap.ViewTransformation, false, ref matrix);
+        GL.UniformMatrix4(cubemap!.ViewTransformation, false, ref matrix);
         GL.UniformMatrix4(cubemap.ProjectionTransformation, false, ref projection);
 
-        GL.UseProgram(cubemap!.ProgramID);
+        GL.UseProgram(cubemap.ProgramID);
 
         GL.DepthFunc(DepthFunction.Lequal);
 

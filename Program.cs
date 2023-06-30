@@ -12,18 +12,27 @@ class Program
     public Surface Screen;
     public Camera Camera;
 
-    private Shader? main;                           // main to use for rendering
-    private Shader? postproc;                       // shader to use for post processing
+    /// <summary>
+    /// The main shader of the program.
+    /// </summary>
+    private Shader? main;
+    /// <summary>
+    /// The post-processing shader of the program.
+    /// </summary>
+    private Shader? postproc;
 
-    private Mesh? teapot, floor;                    // meshes to draw using OpenGL
-    private Texture? wood;                          // texture to use for rendering
-    private Texture? brick, brickNormal;
+    // meshes
+    private Mesh? teapot, floor;
+    // textures
+    private Texture? wood;
+    private Texture? brick, brickNormal; // textures affected by normal mapping have two variants.
     private Texture? lut;
 
     private RenderTarget? target;                   // intermediate render target
     private ScreenQuad? quad;                       // screen filling quad for post processing
-    private readonly bool useRenderTarget = true;   // required for post processing
+    private readonly bool useRenderTarget = true;   // required for post-processing
 
+    // Post-processing settings (glsl booleans)
     private int vignette = 1;
     private int aberration = 1;
     private int togglelut = 1;
@@ -37,14 +46,12 @@ class Program
     // initialize
     public void Init()
     {
-        Skybox.Load();
-
         // textures
         wood = new Texture("../../../assets/textures/wood.jpg");
         brick = new Texture("../../../assets/textures/brick.jpg");
         // normal textures
         brickNormal = new Texture("../../../assets/textures/brick_normal.jpg");
-        // lut
+        
         lut = new Texture("../../../assets/textures/LUT.png");
 
         // meshes
@@ -54,13 +61,15 @@ class Program
         Matrix4 teapotMatrix = Matrix4.CreateTranslation(new Vector3(2f, 0.5f, 0));
         teapot = new Mesh("../../../assets/objects/teapot.obj", teapotMatrix, wood);
 
-        // shaders
+        // create the shaders
         main = new Shader("../../../shaders/scene_vs.glsl", "../../../shaders/scene_fs.glsl");
         postproc = new Shader("../../../shaders/postproc/post_vs.glsl", "../../../shaders/postproc/post_fs.glsl");
 
-        // the render target
+        // create the render target
         if (useRenderTarget) target = new RenderTarget(Screen.width, Screen.height);
         quad = new ScreenQuad();
+
+        Skybox.Load();
     }
 
     /// <summary>
@@ -68,8 +77,8 @@ class Program
     /// </summary>
     public void RenderGL()
     {
-        Matrix4 view = Camera.Load(); // view
-        Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(60.0f), // projection
+        Matrix4 view = Camera.Load();
+        Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(60.0f),
             (float)Screen.width/Screen.height, .1f, 1000);
 
         // enable render target
@@ -93,17 +102,15 @@ class Program
             node2.Render(main, teapot!.AffineTransformation, view, projection);
         }
 
-       
         // render quad
         target.Unbind();
         if (postproc != null)
             quad!.Render(postproc, target.GetTextureID());
         
-        //LUT
+        // look-up table
         GL.ActiveTexture(TextureUnit.Texture4);
         GL.BindTexture(TextureTarget.Texture2D, lut!.ID);
         GL.Uniform1(GL.GetUniformLocation(postproc!.ProgramID, "lut"), 4);
-
     }
 
     // Separated code to tidy up the RenderGL method.
@@ -136,18 +143,18 @@ class Program
     {
         GL.UseProgram(postproc!.ProgramID);
 
-        if (kea.Key == Keys.Z)
+        switch (kea.Key)
         {
-            postproc.SetInt("applyChrom", aberration);
-            postproc.SetInt("applyVignette", vignette);
-            vignette = vignette == 1 ? 0 : 1;
-            aberration = aberration == 1 ? 0 : 1;
-        }
-
-        if (kea.Key == Keys.X)
-        {
-            postproc.SetInt("toggleLUT", togglelut);
-            togglelut = togglelut == 1 ? 0 : 1;
+            case Keys.Z:
+                postproc.SetInt("applyChrom", aberration);
+                postproc.SetInt("applyVignette", vignette);
+                vignette = vignette == 1 ? 0 : 1;
+                aberration = aberration == 1 ? 0 : 1;
+                break;
+            case Keys.X:
+                postproc.SetInt("toggleLUT", togglelut);
+                togglelut = togglelut == 1 ? 0 : 1;
+                break;
         }
     }
 }

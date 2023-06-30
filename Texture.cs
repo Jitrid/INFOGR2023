@@ -55,6 +55,7 @@ public class Texture
 
         GL.TexParameter(target, TextureParameterName.TextureWrapS, (int)TextureParameterName.ClampToEdge);
         GL.TexParameter(target, TextureParameterName.TextureWrapT, (int)TextureParameterName.ClampToEdge);
-        if (isCubeMap) GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapR, (int)TextureParameterName.ClampToEdge);
+        if (isCubeMap) GL.TexParameter(TextureTarget.TextureCubeMap, 
+            TextureParameterName.TextureWrapR, (int)TextureParameterName.ClampToEdge);
     }
 }

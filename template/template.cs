@@ -52,29 +52,8 @@ public class OpenTKApp : GameWindow
             NumberOfSamples = 16
         })
     {
+        CursorGrabbed = true;
     }
-
-    public void DebugCallback(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
-    {
-        Dictionary<DebugSource, string> sourceStrings = new Dictionary<DebugSource, string>
-        {
-            { DebugSource.DebugSourceApi, "API - A call to the OpenGL API" },
-            { DebugSource.DebugSourceWindowSystem, "Window System - A call to a window system API" },
-            { DebugSource.DebugSourceShaderCompiler, "Shader Compiler" },
-            { DebugSource.DebugSourceThirdParty, "Third Party - A third party application associated with OpenGL" },
-            { DebugSource.DebugSourceApplication, "Application - A call to GL.DebugMessageInsert() in this application" },
-            { DebugSource.DebugSourceOther, "Other" },
-            { DebugSource.DontCare, "Ignored" },
-        };
-        string? sourceString;
-        if (!sourceStrings.TryGetValue(source, out sourceString)) sourceString = "Unknown";
-        string? typeString = Enum.GetName(type);
-        if (typeString != null) typeString = typeString.Substring(9);
-        string? severityString = Enum.GetName(severity);
-        if (severityString != null) severityString = severityString.Substring(13);
-        Console.Error.WriteLine("OpenGL Error:\n  Source: " + sourceString + "\n  Type: " + typeString + "\n  Severity: " + severityString
-                                + "\n  Message ID: " + id + "\n  Message: " + Marshal.PtrToStringAnsi(message, length) + "\n");
-    } // put a breakpoint here and inspect the stack to pinpoint where the error came from
 
     protected override void OnLoad()
     {
@@ -94,8 +73,6 @@ public class OpenTKApp : GameWindow
                 foreach (DebugTypeControl type in new[] { DebugTypeControl.DebugTypeError, DebugTypeControl.DebugTypeDeprecatedBehavior, DebugTypeControl.DebugTypeUndefinedBehavior, DebugTypeControl.DebugTypePortability })
                     foreach (DebugSeverityControl severity in new[] { DebugSeverityControl.DebugSeverityHigh })
                         GL.DebugMessageControl(source, type, severity, 0, Array.Empty<int>(), true);
-
-            // GL.DebugMessageCallback(DebugCallback, (IntPtr)0);
         }
 
         // prepare for rendering
@@ -161,7 +138,7 @@ public class OpenTKApp : GameWindow
         GL.Enable(EnableCap.DepthTest);
         GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
         // do OpenGL rendering
-        app.RenderGL();
+        app!.RenderGL();
 
         // tell OpenTK we're done rendering
         SwapBuffers();

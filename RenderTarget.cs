@@ -6,16 +6,11 @@ namespace Rasterization;
 
 class RenderTarget
 {
-    private uint FBO;
-    private int colorTexture;
-    private uint depthBuffer;
-    private int width, height;
+    private readonly uint FBO;
+    private readonly int colorTexture;
 
     public RenderTarget(int screenWidth, int screenHeight)
     {
-        width = screenWidth;
-        height = screenHeight;
-
         // create color texture
         GL.GenTextures(1, out colorTexture);
         GL.BindTexture(TextureTarget.Texture2D, colorTexture);
@@ -23,17 +18,17 @@ class RenderTarget
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, width, height,
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, screenWidth, screenHeight,
             0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
         // bind color and depth textures to FBO
         GL.GenFramebuffers(1, out FBO);
-        GL.GenRenderbuffers(1, out depthBuffer);
+        GL.GenRenderbuffers(1, out uint depthBuffer);
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
         GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, colorTexture, 0);
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBuffer);
-        GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, (RenderbufferStorage)All.DepthComponent24, width, height);
+        GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, (RenderbufferStorage)All.DepthComponent24, screenWidth, screenHeight);
         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
         
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0); // return to regular framebuffer

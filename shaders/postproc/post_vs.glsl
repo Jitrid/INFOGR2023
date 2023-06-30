@@ -1,16 +1,12 @@
+/* Post-processing Vertex Shader */
 #version 330
 
+layout (location = 0) in vec3 vertexPosition;
+layout (location = 1) in vec2 vertexUV;
 
-// shader inputs
-in vec3 vertexPosition;		// vertex position in Object Space
-									// this shader assumes Object Space is identical to Screen Space
-in vec2 vertexUV;					// vertex uv texture coordinates
-
-// shader output, will be interpolated from vertices to fragments
-out vec2 uv;						// vertex uv texture coordinates (pass-through)
+out vec2 uv;
 out vec2 positionFromBottomLeft;	// vertex position on the screen, with (0, 0) at the bottom left and (1, 1) at the top right
 
-// vertex shader
 void main()
 {
 	// vertex position already in Screen Space so no transformation needed
